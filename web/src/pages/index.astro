@@ -1,0 +1,244 @@
+---
+import '../styles/global.css';
+import data from '../data/dashboard.json';
+import ExhibitorCard from '../components/ExhibitorCard.astro';
+import DiscoveryCard from '../components/DiscoveryCard.astro';
+import AllVendorCard from '../components/AllVendorCard.astro';
+import HotCard from '../components/HotCard.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#fdf8ed" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href={`${base}/manifest.json`} />
+  <link rel="icon" type="image/svg+xml" href={`${base}/icon.svg`} />
+  <link rel="apple-touch-icon" href={`${base}/icon.svg`} />
+  <title>UKGE 2026 — Personalised Exhibitor Guide for {data.username}</title>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <div>
+      <h1>UK Games Expo 2026 · Your Personalised Guide</h1>
+      <div class="sub">
+        29–31 May · NEC Birmingham · Built for
+        <a href={`https://boardgamegeek.com/collection/user/${data.username}`} target="_blank" rel="noopener">
+          <strong>{data.username}</strong>
+        </a>
+        from your BGG collection
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="install-btn" title="Install as an app"><span class="ico">⬇</span> Install</button>
+      <button class="icon-btn" id="share-btn" title="Generate a shareable link"><span class="ico">↗</span> Share</button>
+      <button class="icon-btn" id="theme-toggle" title="Toggle light/dark"><span class="ico" id="theme-ico">◐</span> <span id="theme-label">Theme</span></button>
+      <button class="icon-btn" id="export-btn" title="Export plan as markdown"><span class="ico">⤓</span> Export</button>
+    </div>
+  </div>
+</header>
+
+<div class="bar" id="search-bar">
+  <div class="container">
+    <div class="search-row">
+      <input id="global-q" type="search" placeholder="Search exhibitor, game, publisher, award, hall…" autocomplete="off" inputmode="search" />
+      <div class="pill-row">
+        <button class="pill status-pill active" data-status="all">All</button>
+        <button class="pill status-pill" data-status="unvisited">Unvisited</button>
+        <button class="pill status-pill" data-status="visited">Visited</button>
+        <button class="pill status-pill" data-status="revisit">Revisit ★</button>
+        <button class="pill status-pill" data-status="buy">Buy 🛒</button>
+        <button class="pill" id="hide-skipped" type="button">Hide skipped</button>
+      </div>
+    </div>
+    <div class="pill-row day-row">
+      <span class="label">Day:</span>
+      <button class="pill day-pill active" data-day="any">Any</button>
+      <button class="pill day-pill" data-day="fri">Fri</button>
+      <button class="pill day-pill" data-day="sat">Sat</button>
+      <button class="pill day-pill" data-day="sun">Sun</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bar" id="tab-bar">
+  <div class="container">
+    <div class="tabs-inner" id="tabs">
+      <button class="tab active" data-tab="for-you">For you <span class="badge">{data.stats.matched_exhibitors}</span></button>
+      <button class="tab" data-tab="hot">Hot games <span class="badge">{data.stats.hot_count}</span></button>
+      <button class="tab" data-tab="route">Route</button>
+      <button class="tab" data-tab="discover">Discover <span class="badge">{data.stats.discovery_count}</span></button>
+      <button class="tab" data-tab="browse">Browse all <span class="badge">{data.stats.total_exhibitors}</span></button>
+      <button class="tab" data-tab="info">Info</button>
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+  <div class="search-results" id="search-results"></div>
+
+  <div class="panel active" data-panel="for-you">
+    <div class="meta-strip">
+      <div class="meta-card"><div class="v">{data.stats.total_games}</div><div class="k">games in collection</div></div>
+      <div class="meta-card"><div class="v">{data.stats.total_plays}</div><div class="k">total plays logged</div></div>
+      <div class="meta-card"><div class="v">{data.stats.total_exhibitors}</div><div class="k">exhibitors at show</div></div>
+      <div class="meta-card"><div class="v">{data.stats.matched_exhibitors}</div><div class="k">match your collection</div></div>
+      <div class="meta-card"><div class="v">{data.stats.coverage_pct}%</div><div class="k">collection coverage</div></div>
+    </div>
+    <section>
+      <div class="section-head">
+        <h2>Top recommendations <span class="count">— {data.stats.matched_exhibitors} exhibitors who publish games you actually play</span></h2>
+        <p class="lede">Ranked by play-weighted publisher matches. Each game's contribution is capped at 25 plays so one favourite doesn't drown out the rest.</p>
+      </div>
+      <div class="card-grid two-up">
+        {data.recommendations.map((rec) => <ExhibitorCard rec={rec} />)}
+      </div>
+    </section>
+  </div>
+
+  <div class="panel" data-panel="hot">
+    <section>
+      <div class="section-head">
+        <h2>Games to look out for <span class="count">— {data.stats.hot_count} of BGG's hot games have publishers at the show</span></h2>
+        <p class="lede">BGG's current hot list × UKGE exhibitor publishers. Click a thumbnail for BGG reviews.</p>
+      </div>
+      <div class="card-grid two-up">
+        {data.hot_at_show.map((hot) => <HotCard hot={hot} />)}
+      </div>
+    </section>
+  </div>
+
+  <div class="panel" data-panel="route">
+    <section>
+      <div class="section-head">
+        <h2>Route plan <span class="count">— matched stands grouped by hall</span></h2>
+        <p class="lede">Sorted by stand number — roughly the walking order. Updates as you mark visits.</p>
+      </div>
+      <div id="route-plan"></div>
+    </section>
+  </div>
+
+  <div class="panel" data-panel="discover">
+    <section>
+      <div class="section-head">
+        <h2>Discovery <span class="count">— {data.stats.discovery_count} publishers worth a look</span></h2>
+        <p class="lede">Publishers at the expo who don't publish your games yet, but share categories and mechanics with your most-played titles.</p>
+      </div>
+      <div class="card-grid three-up">
+        {data.discovery.map((rec) => <DiscoveryCard rec={rec} />)}
+      </div>
+    </section>
+  </div>
+
+  <div class="panel" data-panel="browse">
+    <section>
+      <div class="section-head">
+        <h2>All {data.stats.total_exhibitors} exhibitors</h2>
+        <p class="lede">Searchable from the bar above — by name, hall, category, anything in the description.</p>
+      </div>
+      <div class="card-grid three-up">
+        {data.all_exhibitors.map((e) => <AllVendorCard exhibitor={e} />)}
+      </div>
+    </section>
+  </div>
+
+  <div class="panel" data-panel="info">
+    <section>
+      <div class="section-head">
+        <h2>Hall map</h2>
+        <p class="lede">UKGE blocks embedding their map, so the button opens it in a new tab.</p>
+      </div>
+      <div class="map-link-block">
+        <a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/map/" target="_blank" rel="noopener">
+          <span style="font-size:18px">🗺</span> Open official UKGE map
+        </a>
+        <div style="margin-top: 16px; color: var(--ink-dim); font-size: 13px;">
+          Halls used in 2026: Hall One · Hall Two · Hall Three · Hall Three A · Hall Four · Hall Five · Toy Fair
+        </div>
+      </div>
+    </section>
+    <section>
+      <div class="section-head">
+        <h2>Your taste signal</h2>
+        <p class="lede">Top categories and mechanics across your collection, weighted by plays.</p>
+      </div>
+      <div class="tag-cloud">
+        <strong style="color:var(--accent)">Categories:</strong>
+        {data.top_categories.map((c) => <span class="tag"> {c.name} <span class="tag-w">{c.weight}</span></span>)}
+      </div>
+      <div class="tag-cloud">
+        <strong style="color:var(--accent)">Mechanics:</strong>
+        {data.top_mechanics.map((m) => <span class="tag"> {m.name} <span class="tag-w">{m.weight}</span></span>)}
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    Generated from BGG collection + UKGE exhibitor listing + BGG hotness.
+    <a href="https://github.com/Kieranties/ukge-companion" target="_blank" rel="noopener">Source on GitHub</a>.
+    Built {data.generated_at_iso}.
+  </footer>
+</main>
+
+<!-- Share modal -->
+<div class="modal" id="share-modal">
+  <div class="modal-box">
+    <h3>Share your plan</h3>
+    <p style="margin: 0 0 10px; color: var(--ink-dim); font-size: 13px;">
+      Anyone with this link sees your visited / buy / day-planned stands as a one-time import prompt. Notes are excluded by default.
+    </p>
+    <label style="display:flex; align-items:center; gap:8px; margin: 8px 0; font-size: 14px;">
+      <input type="checkbox" id="share-include-notes" /> Include notes
+    </label>
+    <textarea id="share-text" readonly></textarea>
+    <div class="modal-actions">
+      <button id="share-copy" class="primary">Copy link</button>
+      <button id="share-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import-from-share -->
+<div class="modal" id="import-modal">
+  <div class="modal-box">
+    <h3>Import shared plan?</h3>
+    <p id="import-summary" style="margin: 0 0 10px; color: var(--ink); font-size: 14px;"></p>
+    <p style="margin: 0 0 10px; color: var(--ink-dim); font-size: 13px;">
+      <strong>Merge</strong> keeps your existing entries and fills in blanks from the shared link. <strong>Replace</strong> overwrites your plan entirely.
+    </p>
+    <div class="modal-actions">
+      <button id="import-cancel">Cancel</button>
+      <button id="import-replace">Replace mine</button>
+      <button id="import-merge" class="primary">Merge</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export modal -->
+<div class="modal" id="export-modal">
+  <div class="modal-box">
+    <h3>Export your plan as markdown</h3>
+    <p style="margin: 0 0 10px; color: var(--ink-dim); font-size: 13px;">Copy into Obsidian, Slack, or wherever.</p>
+    <textarea id="export-text" readonly></textarea>
+    <div class="modal-actions">
+      <button id="export-copy" class="primary">Copy to clipboard</button>
+      <button id="export-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  import '../scripts/main.ts';
+</script>
+
+</body>
+</html>

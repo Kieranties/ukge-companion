@@ -1,0 +1,15 @@
+---
+interface Props {
+  name: string;
+  logo?: string | null;
+}
+const { name, logo } = Astro.props;
+const initial = (name || '?').trim().slice(0, 1).toUpperCase() || '?';
+---
+{logo ? (
+  <div class="card-logo">
+    <img src={logo} alt="" loading="lazy" referrerpolicy="no-referrer" />
+  </div>
+) : (
+  <div class="card-logo placeholder">{initial}</div>
+)}

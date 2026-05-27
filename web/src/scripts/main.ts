@@ -1,0 +1,20 @@
+import { wireTheme } from './theme';
+import { wireTabs } from './tabs';
+import { wireFilters, applyFilters } from './filters';
+import { wireAllCards } from './cards';
+import { wireSearch } from './search';
+import { wireRoute } from './route';
+import { wireShare } from './share';
+import { wireExport } from './export';
+import { wirePWA } from './pwa';
+
+wireTheme();
+wireAllCards();
+wireTabs();
+wireFilters();
+wireRoute();
+wireSearch();
+wireShare();
+wireExport();
+wirePWA();
+applyFilters();

@@ -1,0 +1,22 @@
+---
+interface Award {
+  award: string;
+  year: number;
+  kind: 'winner' | 'nominee' | 'recommended' | string;
+}
+interface Props {
+  award?: Award | null;
+}
+const { award } = Astro.props;
+if (!award) return null as any;
+const short =
+  ({
+    'Spiel des Jahres': 'SdJ',
+    'Kennerspiel des Jahres': 'KSdJ',
+    'Golden Geek': 'Geek',
+  } as Record<string, string>)[award.award] ?? award.award.slice(0, 4);
+const cls = award.kind === 'winner' ? 'winner' : ['nominee', 'recommended'].includes(award.kind) ? 'nominee' : 'other';
+const sym = award.kind === 'winner' ? '🏆' : '✦';
+const title = `${award.award} ${award.year} (${award.kind})`;
+---
+<span class={`award ${cls}`} title={title}>{sym} {short} {award.year}</span>

@@ -1,0 +1,43 @@
+---
+import Logo from './Logo.astro';
+import BoothTools from './BoothTools.astro';
+
+interface Props {
+  exhibitor: {
+    slug: string;
+    name: string;
+    hall?: string;
+    stand?: string;
+    categories?: string[];
+    description?: string;
+    logo?: string;
+  };
+}
+const { exhibitor: e } = Astro.props;
+const url = `https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/${e.slug}/`;
+const cats = (e.categories || []).join(' · ');
+---
+<article
+  class="card no-rank"
+  data-kind="all-vendor"
+  data-slug={e.slug}
+  data-name={(e.name || '').toLowerCase()}
+  data-hall={(e.hall || '').toLowerCase()}
+  data-stand={e.stand || ''}
+  data-categories={cats.toLowerCase()}
+  data-description={(e.description || '').toLowerCase()}
+>
+  <header class="card-head">
+    <Logo name={e.name} logo={e.logo} />
+    <div class="card-title">
+      <h3><a href={url} target="_blank" rel="noopener">{e.name}</a></h3>
+      <div class="card-loc">
+        <span class="hall">{e.hall}</span>
+        <span class="stand">{e.stand}</span>
+      </div>
+    </div>
+  </header>
+  {cats && <div class="card-cats">{cats}</div>}
+  {e.description && <p class="card-desc">{e.description}</p>}
+  <BoothTools />
+</article>

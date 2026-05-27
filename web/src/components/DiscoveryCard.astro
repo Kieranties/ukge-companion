@@ -1,0 +1,55 @@
+---
+import Logo from './Logo.astro';
+import BoothTools from './BoothTools.astro';
+
+interface Props {
+  rec: {
+    rank: number;
+    exhibitor: {
+      slug: string;
+      name: string;
+      hall?: string;
+      stand?: string;
+      categories?: string[];
+      description?: string;
+      logo?: string;
+    };
+    matched_keywords: string[];
+    score: number;
+  };
+}
+const { rec } = Astro.props;
+const e = rec.exhibitor;
+const url = `https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/${e.slug}/`;
+const cats = (e.categories || []).join(' · ');
+const haystack = [e.name, cats, e.description || '', e.hall || '', e.stand || '', rec.matched_keywords.join(' ')]
+  .join(' ')
+  .toLowerCase();
+---
+<article
+  class="card"
+  data-kind="discovery"
+  data-slug={e.slug}
+  data-name={(e.name || '').toLowerCase()}
+  data-hall={(e.hall || '').toLowerCase()}
+  data-stand={e.stand || ''}
+  data-categories={cats.toLowerCase()}
+  data-description={(e.description || '').toLowerCase()}
+  data-score={rec.score}
+>
+  <header class="card-head">
+    <div class="card-rank accent-2">#{rec.rank}</div>
+    <Logo name={e.name} logo={e.logo} />
+    <div class="card-title">
+      <h3><a href={url} target="_blank" rel="noopener">{e.name}</a></h3>
+      <div class="card-loc">
+        <span class="hall">{e.hall}</span>
+        <span class="stand">{e.stand}</span>
+      </div>
+    </div>
+  </header>
+  {cats && <div class="card-cats">{cats}</div>}
+  {e.description && <p class="card-desc">{e.description}</p>}
+  <div class="card-cats" style="margin-top:8px">matched on: {rec.matched_keywords.join(', ')}</div>
+  <BoothTools />
+</article>

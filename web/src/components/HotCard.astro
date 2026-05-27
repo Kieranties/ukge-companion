@@ -1,0 +1,66 @@
+---
+import AwardBadge from './AwardBadge.astro';
+interface Props {
+  hot: {
+    rank: number;
+    game: {
+      bggId: string;
+      name: string;
+      year?: string | null;
+      geekRating?: number | null;
+      thumb?: string | null;
+      categories?: string[];
+      award?: any;
+    };
+    exhibitors: Array<{
+      exhibitor: { slug: string; name: string; hall?: string; stand?: string };
+      publisher: string;
+    }>;
+  };
+}
+const { hot } = Astro.props;
+const g = hot.game;
+const bggUrl = `https://boardgamegeek.com/boardgame/${g.bggId}`;
+const cats = (g.categories || []).slice(0, 4).join(' · ');
+const haystack = [
+  g.name,
+  String(g.year || ''),
+  cats,
+  ...hot.exhibitors.map((me) => me.exhibitor.name),
+]
+  .join(' ')
+  .toLowerCase();
+---
+<article
+  class="card hot-card"
+  data-kind="hot-game"
+  data-slug={`hot-${g.bggId}`}
+  data-name={(g.name || '').toLowerCase()}
+  data-categories={cats.toLowerCase()}
+  data-hall=""
+>
+  <a class="hot-thumb" href={bggUrl} target="_blank" rel="noopener" title="View on BoardGameGeek">
+    {g.thumb ? <img src={g.thumb} alt="" loading="lazy" /> : <div class="no-thumb">·</div>}
+  </a>
+  <div class="hot-body">
+    <header class="card-head" style="grid-template-columns: 30px 1fr">
+      <div class="card-rank">#{hot.rank}</div>
+      <div class="card-title">
+        <h3><a href={bggUrl} target="_blank" rel="noopener">{g.name}</a></h3>
+        <div class="hot-meta">{g.year} · BGG {g.geekRating ? g.geekRating.toFixed(2) : '—'}</div>
+      </div>
+    </header>
+    <div class="card-cats" style="margin-top:6px">{cats}<AwardBadge award={g.award} /></div>
+    <div class="hot-venues-label">See it at:</div>
+    {hot.exhibitors.slice(0, 3).map((me) => {
+      const u = `https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/${me.exhibitor.slug}/`;
+      const loc = [me.exhibitor.hall, me.exhibitor.stand].filter(Boolean).join(' ');
+      return (
+        <a class="hot-venue" href={u} target="_blank" rel="noopener">
+          <span class="ex-name">{me.exhibitor.name}</span>
+          <span class="ex-loc-tag">{loc}</span>
+        </a>
+      );
+    })}
+  </div>
+</article>

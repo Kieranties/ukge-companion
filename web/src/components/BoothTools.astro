@@ -1,0 +1,19 @@
+---
+// Shared booth-tool buttons used by every card kind. Client wiring is done
+// once globally by cards.ts — these are just markup.
+---
+<div class="booth-day-row">
+  <span class="label">Day:</span>
+  <button class="day-chip" data-day="fri" type="button">Fri</button>
+  <button class="day-chip" data-day="sat" type="button">Sat</button>
+  <button class="day-chip" data-day="sun" type="button">Sun</button>
+</div>
+<div class="booth-tools">
+  <button class="booth-btn visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+  <button class="booth-btn buy-btn" data-action="toggle-buy" type="button" title="Buy something from this stand">🛒 Buy</button>
+  <button class="booth-btn skip-btn" data-action="toggle-skip" type="button">Skip</button>
+  <button class="booth-btn notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+  <div class="notes-area hidden" data-role="notes">
+    <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+  </div>
+</div>

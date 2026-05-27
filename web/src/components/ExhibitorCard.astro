@@ -1,0 +1,117 @@
+---
+import Logo from './Logo.astro';
+import AwardBadge from './AwardBadge.astro';
+import BoothTools from './BoothTools.astro';
+
+interface Game {
+  bggId: string;
+  name: string;
+  year?: string | null;
+  geekRating?: number | null;
+  award?: any;
+}
+interface MatchedGame {
+  game: Game;
+  publisher: string;
+  plays: number;
+  score: number;
+}
+interface Exhibitor {
+  slug: string;
+  name: string;
+  hall?: string;
+  stand?: string;
+  categories?: string[];
+  description?: string;
+  logo?: string;
+}
+interface Props {
+  rec: {
+    rank: number;
+    exhibitor: Exhibitor;
+    games: MatchedGame[];
+    matched_publishers: string[];
+    total_plays: number;
+    score: number;
+    on_topic: boolean;
+  };
+}
+
+const { rec } = Astro.props;
+const e = rec.exhibitor;
+const url = `https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/${e.slug}/`;
+const cats = (e.categories || []).join(' · ');
+const whyText = `Matched on ${rec.matched_publishers.length} publisher${rec.matched_publishers.length === 1 ? '' : 's'} credited on ${rec.games.length} of your games: ${rec.matched_publishers.slice(0, 8).join(', ')}${rec.matched_publishers.length > 8 ? '…' : ''}`;
+
+// Build haystack for search index — all the fields a query might match.
+const haystack = [
+  e.name,
+  cats,
+  e.description || '',
+  e.hall || '',
+  e.stand || '',
+  ...rec.games.map((g) => g.game.name),
+  ...rec.matched_publishers,
+]
+  .join(' ')
+  .toLowerCase();
+const gameNames = rec.games.map((g) => g.game.name).join(' ');
+const pubs = rec.matched_publishers.join(' ');
+---
+<article
+  class="card has-stats"
+  data-kind="recommendation"
+  data-slug={e.slug}
+  data-name={(e.name || '').toLowerCase()}
+  data-hall={(e.hall || '').toLowerCase()}
+  data-stand={e.stand || ''}
+  data-categories={cats.toLowerCase()}
+  data-description={(e.description || '').toLowerCase()}
+  data-games={gameNames.toLowerCase()}
+  data-publishers={pubs.toLowerCase()}
+  data-score={rec.score}
+  data-games-count={rec.games.length}
+  data-plays={rec.total_plays}
+  data-ontopic={rec.on_topic ? '1' : '0'}
+>
+  <header class="card-head">
+    <div class="card-rank">#{rec.rank}</div>
+    <Logo name={e.name} logo={e.logo} />
+    <div class="card-title">
+      <h3>
+        <a href={url} target="_blank" rel="noopener">{e.name}</a>
+        {!rec.on_topic && (
+          <span class="off-topic" title="UKGE categories don't include core board-game categories; this booth may be a different arm of the same publisher">tangential booth</span>
+        )}
+      </h3>
+      <div class="card-loc">
+        <span class="hall">{e.hall}</span>
+        <span class="stand">{e.stand}</span>
+      </div>
+    </div>
+    <div class="card-stats">
+      <div class="stat"><strong>{rec.games.length}</strong><span>game{rec.games.length === 1 ? '' : 's'}</span></div>
+      <div class="stat"><strong>{rec.total_plays}</strong><span>plays</span></div>
+      <div class="stat"><strong>{rec.score}</strong><span>score</span></div>
+    </div>
+  </header>
+  {cats && <div class="card-cats">{cats}</div>}
+  {e.description && <p class="card-desc">{e.description}</p>}
+  <details class="game-list-wrap">
+    <summary>{rec.games.length} matching {rec.games.length === 1 ? 'game' : 'games'} in your collection</summary>
+    <ul class="game-list">
+      {rec.games.map((g) => (
+        <li>
+          <span class="g-name">{g.game.name}</span>
+          <span class="g-year"> ({g.game.year})</span>
+          <AwardBadge award={g.game.award} />
+          <span class="g-plays">{g.plays}× plays</span>
+          <span class="g-pub">via {g.publisher}</span>
+          {g.game.geekRating && <span class="g-meta"> · BGG {g.game.geekRating.toFixed(2)}</span>}
+        </li>
+      ))}
+    </ul>
+  </details>
+  <button class="why-btn" type="button" title={whyText}>why is this here?</button>
+  <BoothTools />
+</article>
