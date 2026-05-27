@@ -8,6 +8,7 @@ web data folder so the Astro build picks it up.
 
 Concurrency is capped low (4) to be polite to UKGE's CDN.
 """
+import html as html_mod
 import json
 import re
 import sys
@@ -132,6 +133,7 @@ def regex_pull_descriptions(html_text):
     for m in DESC_RE.finditer(html_text):
         gid, inner = m.group(1), m.group(2)
         text = TAGS_RE.sub("", inner)
+        text = html_mod.unescape(text)
         text = re.sub(r"\s+", " ", text).strip()
         if text:
             out[gid] = text[:600]
