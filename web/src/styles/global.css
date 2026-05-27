@@ -35,7 +35,7 @@
   --font-serif: 'Iowan Old Style', 'Cambria', Georgia, serif;
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Helvetica Neue', sans-serif;
-  --bar-bg: rgba(253, 248, 237, 0.9);
+  --bar-bg: rgba(253, 248, 237, 0.65);
 }
 [data-theme='dark'] {
   --bg: #0f172a;
@@ -60,7 +60,7 @@
   --shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.3);
   --shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.4),
     0 12px 32px rgba(0, 0, 0, 0.4);
-  --bar-bg: rgba(15, 23, 42, 0.92);
+  --bar-bg: rgba(15, 23, 42, 0.55);
 }
 
 * {
@@ -175,8 +175,11 @@ a:hover {
 .bar {
   position: sticky;
   background: var(--bar-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  /* Strong blur + saturate gives a frosted-glass look so the body's
+   * radial gradient continues visually underneath, instead of being
+   * masked by a solid band that looks pasted on. */
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid var(--line);
 }
 #search-bar {
@@ -1059,9 +1062,6 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   font-weight: 400;
 }
 .route-stop {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid var(--line);
@@ -1080,24 +1080,29 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   border-left: 4px solid var(--buy);
 }
 .route-stop.skipped {
-  opacity: 0.4;
+  opacity: 0.45;
+}
+.route-stop-main {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 10px;
+  align-items: center;
 }
 .route-stop .stop-num {
   font-family: var(--font-sans);
   background: var(--panel-3);
   color: var(--ink);
-  padding: 2px 8px;
+  padding: 4px 8px;
   border-radius: 6px;
   font-size: 12px;
-  min-width: 56px;
   text-align: center;
 }
 .route-stop .stop-name {
-  flex: 1;
   min-width: 0;
   color: var(--ink-strong);
   font-weight: 600;
   font-size: 14px;
+  overflow-wrap: anywhere;
 }
 .route-stop .stop-name a {
   color: inherit;
@@ -1106,10 +1111,91 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
 .route-stop .stop-name a:hover {
   color: var(--accent);
 }
-.route-stop .stop-mini {
-  color: var(--ink-dim);
-  font-size: 14px;
+.stop-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.route-act {
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
   font-family: var(--font-sans);
+  font-size: 12px;
+  min-width: 30px;
+  min-height: 30px;
+  line-height: 1;
+}
+.route-act.visit.on {
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green);
+}
+.route-act.visit.revisit {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.route-act.buy.on {
+  background: var(--buy);
+  color: #1a1a2e;
+  border-color: var(--buy);
+}
+.route-act.skip.on {
+  background: var(--ink-dim);
+  color: var(--panel);
+  border-color: var(--ink-dim);
+}
+.route-act.notes.on {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.route-stop-days {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  padding-left: 66px;
+}
+.route-stop-notes {
+  margin-top: 6px;
+}
+.route-stop-notes textarea {
+  width: 100%;
+  min-height: 60px;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+.route-filter-note {
+  margin: 0 0 12px;
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+.route-filter-note strong {
+  color: var(--ink-strong);
+}
+@media (max-width: 480px) {
+  .route-stop-main {
+    grid-template-columns: 56px 1fr;
+  }
+  .stop-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    margin-top: 4px;
+  }
+  .route-stop-days {
+    padding-left: 0;
+  }
 }
 
 /* ---------- Map ---------------------------------------------------------- */

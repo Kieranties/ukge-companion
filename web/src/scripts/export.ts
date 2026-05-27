@@ -67,9 +67,25 @@ function buildMarkdown(): string {
   const skipped = Object.entries(store.data).filter(([, v]) => v.skipped);
   if (skipped.length) {
     lines.push('## Skipped');
-    for (const [slug] of skipped) {
+    for (const [slug, v] of skipped) {
       const i = lookup(slug);
       lines.push(`- ${i.name} — ${i.hall} ${i.stand}`);
+      if (v.notes && v.notes.trim()) for (const ln of v.notes.split(/\r?\n/)) lines.push(`  - ${ln}`);
+    }
+    lines.push('');
+  }
+  // Any stand with notes that didn't appear in a section above — pure-notes
+  // entries would otherwise be silently dropped from the export.
+  const seenSlugs = new Set([...visited, ...revisit, ...buying, ...skipped].map(([s]) => s));
+  const notesOnly = Object.entries(store.data).filter(
+    ([slug, v]) => v.notes && v.notes.trim() && !seenSlugs.has(slug)
+  );
+  if (notesOnly.length) {
+    lines.push('## Notes');
+    for (const [slug, v] of notesOnly) {
+      const i = lookup(slug);
+      lines.push(`- **${i.name}** — ${i.hall} ${i.stand}`);
+      for (const ln of v.notes!.split(/\r?\n/)) lines.push(`  - ${ln}`);
     }
     lines.push('');
   }
@@ -77,7 +93,8 @@ function buildMarkdown(): string {
     visited.length === 0 &&
     revisit.length === 0 &&
     buying.length === 0 &&
-    skipped.length === 0
+    skipped.length === 0 &&
+    notesOnly.length === 0
   ) {
     lines.push('*Nothing tracked yet.*');
   }
