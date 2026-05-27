@@ -200,16 +200,22 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <section>
       <div class="section-head">
         <h2>Opening times</h2>
-        <p class="lede">Trade Hall hours — when the exhibitors are open. Gaming halls run later.</p>
+        <p class="lede">When each venue is open. Trade Hall closes earliest; gaming halls + library run later.</p>
       </div>
       <table class="hours-table">
         <thead>
-          <tr><th>Day</th><th>Trade Hall</th><th>Gaming &amp; Tournaments</th></tr>
+          <tr>
+            <th>Venue</th>
+            <th>Fri <span class="day-date">29 May</span></th>
+            <th>Sat <span class="day-date">30 May</span></th>
+            <th>Sun <span class="day-date">31 May</span></th>
+          </tr>
         </thead>
         <tbody>
-          <tr><th scope="row">Friday <span class="day-date">29 May</span></th><td>09:00 – 18:00</td><td>09:00 – Midnight</td></tr>
-          <tr><th scope="row">Saturday <span class="day-date">30 May</span></th><td>09:00 – 18:00</td><td>09:00 – Midnight</td></tr>
-          <tr><th scope="row">Sunday <span class="day-date">31 May</span></th><td>09:00 – 16:00</td><td>09:00 – 18:00</td></tr>
+          <tr><th scope="row">Trade Hall</th><td>09:00 – 18:00</td><td>09:00 – 18:00</td><td>09:00 – 16:00</td></tr>
+          <tr><th scope="row">Gaming &amp; Tournaments</th><td>09:00 – Midnight</td><td>09:00 – Midnight</td><td>09:00 – 18:00</td></tr>
+          <tr><th scope="row">Board Game Library <span class="venue-sub">NEC</span></th><td>09:00 – 22:00</td><td>09:00 – 22:00</td><td>09:00 – 14:00</td></tr>
+          <tr><th scope="row">Board Game Library <span class="venue-sub">Hilton</span></th><td>18:00 – 22:00</td><td>18:00 – 22:00</td><td>—</td></tr>
         </tbody>
       </table>
       <p class="lede" style="margin-top:10px">
