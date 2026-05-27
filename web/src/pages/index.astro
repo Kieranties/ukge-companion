@@ -65,6 +65,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       <button class="pill day-pill" data-day="sat">Sat</button>
       <button class="pill day-pill" data-day="sun">Sun</button>
     </div>
+    <div class="pill-row day-row">
+      <span class="label">Search in:</span>
+      <button class="pill facet-pill" data-facet="all">All</button>
+      <button class="pill facet-pill" data-facet="exhibitor">Exhibitor</button>
+      <button class="pill facet-pill" data-facet="games">Games</button>
+      <button class="pill facet-pill" data-facet="publishers">Publishers</button>
+      <button class="pill facet-pill" data-facet="categories">Categories</button>
+      <button class="pill facet-pill" data-facet="halls">Halls</button>
+    </div>
   </div>
 </div>
 
@@ -158,16 +167,16 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       </div>
       <div class="map-embed">
         <iframe
-          src="https://www.openstreetmap.org/export/embed.html?bbox=-1.7900%2C52.4350%2C-1.6500%2C52.4700&layer=mapnik&marker=52.4500%2C-1.7197"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d19451.513922934297!2d-1.74065921038034!3d52.45307216404293!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4870b122e65d9dfd%3A0x1d0d8b24ea1e5be3!2sMarston%20Green%2C%20Birmingham%20B40%201NT!5e0!3m2!1sen!2suk!4v1779919982382!5m2!1sen!2suk"
           loading="lazy"
           referrerpolicy="no-referrer-when-downgrade"
+          allowfullscreen
           title="Map: NEC Birmingham"
         ></iframe>
         <div class="map-links">
           <a href="https://www.google.com/maps/dir/?api=1&destination=NEC+Birmingham+B40+1NT" target="_blank" rel="noopener">🧭 Google directions</a>
           <a href="https://maps.apple.com/?address=NEC+Birmingham+B40+1NT&dirflg=d" target="_blank" rel="noopener">🍎 Apple Maps directions</a>
-          <a href="https://www.openstreetmap.org/?mlat=52.4500&mlon=-1.7197#map=16/52.4500/-1.7197" target="_blank" rel="noopener">Open larger map</a>
-          <a href="https://www.thenec.co.uk/visit/getting-here/" target="_blank" rel="noopener">NEC travel info</a>
+          <a href="https://www.thenec.co.uk/visitors/getting-here/" target="_blank" rel="noopener">NEC travel info</a>
         </div>
       </div>
     </section>

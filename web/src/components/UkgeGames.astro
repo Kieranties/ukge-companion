@@ -10,6 +10,10 @@ interface Props {
 }
 const { games = [], exhibitorName = '' } = Astro.props;
 if (!games || games.length === 0) return null as any;
+
+function bggSearchUrl(name: string): string {
+  return `https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=${encodeURIComponent(name)}`;
+}
 ---
 <details class="ukge-games">
   <summary>{games.length} game{games.length === 1 ? '' : 's'} on their UKGE listing</summary>
@@ -18,7 +22,7 @@ if (!games || games.length === 0) return null as any;
       <li>
         {g.image && <img class="ukge-game-thumb" src={g.image} alt="" loading="lazy" referrerpolicy="no-referrer" />}
         <div class="ukge-game-body">
-          <button class="ukge-game-name tag-chip" data-tag-kind="ukge-game" data-tag-value={g.name} type="button">{g.name}</button>
+          <a class="ukge-game-name tag-chip" href={bggSearchUrl(g.name)} target="_blank" rel="noopener" title={`Look up ${g.name} on BoardGameGeek`}>{g.name} <span class="ukge-bgg-arrow" aria-hidden="true">↗</span></a>
           {g.description && <p class="ukge-game-desc">{g.description}</p>}
         </div>
       </li>

@@ -90,24 +90,12 @@ export function cardMatchesActiveTag(card: HTMLElement): boolean {
 }
 
 /**
- * Build a synthetic data-tag-ukge-games attribute on each card from the
- * UkgeGames component's game-name chips inside it. Run once on init.
- */
-export function indexUkgeGames(): void {
-  for (const card of document.querySelectorAll<HTMLElement>('.card[data-slug]')) {
-    const chips = card.querySelectorAll<HTMLElement>('.ukge-game-name[data-tag-value]');
-    if (chips.length === 0) continue;
-    const names = Array.from(chips, (c) => c.dataset.tagValue || '').filter(Boolean);
-    if (names.length) card.dataset.tagUkgeGames = names.join('|');
-  }
-}
-
-/**
  * Wire global click handler — any element with data-tag-kind + data-tag-value
- * sets the active tag. Replaces the old data-filter behaviour.
+ * sets the active tag. UKGE-listed games are NOT tag chips (they're links to
+ * BoardGameGeek) so this only fires for category / publisher / collection-game
+ * chips.
  */
 export function wireTagClicks(): void {
-  indexUkgeGames();
   document.addEventListener('click', (e) => {
     const el = (e.target as HTMLElement).closest<HTMLElement>('[data-tag-kind][data-tag-value]');
     if (!el) return;

@@ -19,6 +19,7 @@ const { exhibitor: e } = Astro.props;
 const url = `https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/${e.slug}/`;
 const cats = (e.categories || []);
 const catsString = cats.join(' · ');
+const ukgeGameNames = (e.ukge_games || []).map((g: any) => g.name).join(' ');
 ---
 <article
   class="card no-rank"
@@ -29,6 +30,7 @@ const catsString = cats.join(' · ');
   data-stand={e.stand || ''}
   data-categories={catsString.toLowerCase()}
   data-description={(e.description || '').toLowerCase()}
+  data-ukge-games={ukgeGameNames.toLowerCase()}
   data-tag-categories={cats.join('|')}
 >
   <header class="card-head">

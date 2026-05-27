@@ -25,6 +25,7 @@ const e = rec.exhibitor;
 const url = `https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/${e.slug}/`;
 const cats = (e.categories || []);
 const catsString = cats.join(' · ');
+const ukgeGameNames = ((e as any).ukge_games || []).map((g: any) => g.name).join(' ');
 const haystack = [e.name, cats, e.description || '', e.hall || '', e.stand || '', rec.matched_keywords.join(' ')]
   .join(' ')
   .toLowerCase();
@@ -38,6 +39,7 @@ const haystack = [e.name, cats, e.description || '', e.hall || '', e.stand || ''
   data-stand={e.stand || ''}
   data-categories={catsString.toLowerCase()}
   data-description={(e.description || '').toLowerCase()}
+  data-ukge-games={ukgeGameNames.toLowerCase()}
   data-tag-categories={cats.join('|')}
   data-score={rec.score}
 >

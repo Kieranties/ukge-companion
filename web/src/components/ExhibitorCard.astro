@@ -66,6 +66,7 @@ const haystack = [
 const tagCategories = cats.join('|');
 const tagPublishers = rec.matched_publishers.join('|');
 const tagGames = rec.games.map((g) => g.game.name).join('|');
+const ukgeGameNames = (e.ukge_games || []).map((g: any) => g.name).join(' ');
 const gameNames = rec.games.map((g) => g.game.name).join(' ');
 const pubs = rec.matched_publishers.join(' ');
 ---
@@ -79,6 +80,7 @@ const pubs = rec.matched_publishers.join(' ');
   data-categories={catsString.toLowerCase()}
   data-description={(e.description || '').toLowerCase()}
   data-games={gameNames.toLowerCase()}
+  data-ukge-games={ukgeGameNames.toLowerCase()}
   data-publishers={pubs.toLowerCase()}
   data-tag-categories={tagCategories}
   data-tag-publishers={tagPublishers}
