@@ -168,6 +168,7 @@
     .global-search button { flex: 0 0 auto; min-height: 0; }
   }
   .global-search button.active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .status-pill { font-size: 12px !important; padding: 8px 12px !important; }
 
   /* Meta strip */
   .meta-strip {
@@ -256,6 +257,10 @@
     border-color: var(--green);
     background: linear-gradient(180deg, var(--green-soft) 0%, var(--panel) 35%);
   }
+  .ex-card.revisit, .dx-card.revisit, .av-card.revisit {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, var(--accent-soft) 0%, var(--panel) 35%);
+  }
   .ex-card.skipped, .dx-card.skipped, .av-card.skipped { opacity: 0.5; }
   .ex-card.visited::before, .av-card.visited::before, .dx-card.visited::before {
     content: "✓ visited";
@@ -263,6 +268,20 @@
     top: -10px;
     right: 12px;
     background: var(--green);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .ex-card.revisit::before, .av-card.revisit::before, .dx-card.revisit::before {
+    content: "★ visit again";
+    position: absolute;
+    top: -10px;
+    right: 12px;
+    background: var(--accent);
     color: #fff;
     font-size: 11px;
     font-weight: 700;
@@ -480,6 +499,8 @@
   }
   .visit-btn { flex: 1 1 auto; min-width: 110px; }
   .skip-btn, .notes-toggle { flex: 0 1 auto; }
+  .visit-btn.visited { background: var(--green); color: #fff; border-color: var(--green); font-weight: 600; }
+  .visit-btn.revisit { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
   .visit-btn.on { background: var(--green); color: #fff; border-color: var(--green); font-weight: 600; }
   .skip-btn.on { background: var(--ink-dim); color: var(--panel); border-color: var(--ink-dim); font-weight: 600; }
   .notes-toggle.has-notes { color: var(--accent); border-color: var(--accent); }
@@ -556,6 +577,7 @@
     background: var(--panel-2);
   }
   .route-stop.done { background: var(--green-soft); border-color: var(--green); }
+  .route-stop.revisit { background: var(--accent-soft); border-color: var(--accent); }
   .route-stop.skipped { opacity: 0.4; }
   .route-stop .stop-num {
     font-family: var(--font-sans);
@@ -665,8 +687,70 @@
   }
   footer a { color: var(--accent-2); }
 
+  /* Tabs */
+  .tabs {
+    position: sticky;
+    top: 60px; /* below the global search */
+    z-index: 25;
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 8px 0;
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .tabs-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabs-inner::-webkit-scrollbar { display: none; }
+  .tab {
+    background: var(--panel);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: var(--shadow);
+  }
+  .tab .badge {
+    background: var(--panel-2);
+    color: var(--ink-dim);
+    border-radius: 999px;
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+  }
+  .tab.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .tab.active .badge { background: rgba(255,255,255,0.25); color: #fff; }
+  .tab:hover:not(.active) { border-color: var(--line-strong); }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .panel section:first-of-type { margin-top: 18px; }
+
   /* Utilities */
   .hidden { display: none !important; }
+  .invisible { visibility: hidden !important; }
   .toast {
     position: fixed;
     bottom: 20px;
@@ -706,12 +790,25 @@
   <div class="wrap">
     <input id="global-q" type="search" placeholder="Search exhibitor, game, publisher, category, hall…" autocomplete="off" inputmode="search">
     <div class="btn-row">
-      <button id="visited-only" type="button" title="Show only stands you've marked as visited">Visited only</button>
-      <button id="unvisited-only" type="button" title="Hide stands you've already visited">Unvisited only</button>
+      <button class="status-pill" data-status="all">All</button>
+      <button class="status-pill" data-status="unvisited">Unvisited</button>
+      <button class="status-pill" data-status="visited">Visited</button>
+      <button class="status-pill" data-status="revisit">Revisit ★</button>
       <button id="hide-skipped" type="button" title="Toggle hiding skipped stands">Hide skipped</button>
     </div>
   </div>
 </div>
+
+<nav class="tabs">
+  <div class="tabs-inner" id="tabs">
+    <button class="tab active" data-tab="for-you">For you <span class="badge">32</span></button>
+    <button class="tab" data-tab="hot">Hot games <span class="badge">31</span></button>
+    <button class="tab" data-tab="route">Route</button>
+    <button class="tab" data-tab="discover">Discover <span class="badge">31</span></button>
+    <button class="tab" data-tab="browse">Browse all <span class="badge">868</span></button>
+    <button class="tab" data-tab="info">Info</button>
+  </div>
+</nav>
 
 <div class="meta-strip">
   <div class="meta-card"><div class="v">116</div><div class="k">games in collection</div></div>
@@ -721,6 +818,7 @@
   <div class="meta-card"><div class="v">59%</div><div class="k">collection coverage</div></div>
 </div>
 
+<div class="panel active" data-panel="for-you">
 <section>
   <h2>Top recommendations <span class="count">— 32 exhibitors who publish games you actually play</span></h2>
   <p class="lede">
@@ -1958,7 +2056,9 @@
     </article>
     </div>
 </section>
+</div>
 
+<div class="panel" data-panel="hot">
 <section>
   <h2>Games to look out for <span class="count">— 31 of BGG's hot games have publishers at the show</span></h2>
   <p class="lede">
@@ -2555,7 +2655,9 @@
     </article>
     </div>
 </section>
+</div>
 
+<div class="panel" data-panel="route">
 <section>
   <h2>Route plan <span class="count">— your matched stands grouped by hall</span></h2>
   <p class="lede">
@@ -2564,7 +2666,9 @@
   </p>
   <div id="route-plan"></div>
 </section>
+</div>
 
+<div class="panel" data-panel="discover">
 <section>
   <h2>Discovery <span class="count">— 31 publishers worth a look, top 40 shown</span></h2>
   <p class="lede">
@@ -3426,47 +3530,30 @@ Add some gold to you collection!!</p>
     </article>
     </div>
 </section>
+</div>
 
+<div class="panel" data-panel="browse">
 <section>
-  <h2>Hall map</h2>
+  <h2>All 868 exhibitors</h2>
   <p class="lede">
-    UKGE's own map blocks embedding (their site sends an X-Frame-Options header), so the button opens it in a new tab.
-    Cross-reference stand numbers from the cards above on the map view.
+    The whole list, alphabetical. Use the search bar above to filter — by name, hall, category, anything in the description.
   </p>
-  <div class="map-wrap" style="padding: 24px; text-align: center;">
-    <a class="av-toggle" href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/map/" target="_blank" rel="noopener" style="display:inline-flex; gap:10px; align-items:center; text-decoration:none">
-      <span style="font-size:18px">🗺</span> Open official UKGE map
-    </a>
-    <div style="margin-top: 16px; color: var(--ink-dim); font-size: 13px;">
-      Halls used in 2026: Hall One · Hall Two · Hall Three · Hall Three A · Hall Four · Hall Five · Toy Fair
-    </div>
+  <div class="controls">
+    <label>Filter <input id="av-filter" placeholder="name, category, hall…"></label>
+    <label>Hall
+      <select id="av-hall">
+        <option value="">all</option>
+        <option>Hall One</option>
+        <option>Hall Two</option>
+        <option>Hall Three</option>
+        <option>Hall Three A</option>
+        <option>Hall Four</option>
+        <option>Hall Five</option>
+        <option>Toy Fair</option>
+      </select>
+    </label>
   </div>
-</section>
-
-<section>
-  <h2>Browse all 868 exhibitors</h2>
-  <p class="lede">
-    The whole list, alphabetical, searchable via the sticky bar at the top. Tap "Show all" to expand — it's a lot to render
-    so this stays collapsed by default.
-  </p>
-  <button class="av-toggle" id="av-toggle" type="button">Show all 868 exhibitors</button>
-  <div class="av-section" id="av-section">
-    <div class="controls" style="margin-top:14px">
-      <label>Filter <input id="av-filter" placeholder="name, category, hall…"></label>
-      <label>Hall
-        <select id="av-hall">
-          <option value="">all</option>
-          <option>Hall One</option>
-          <option>Hall Two</option>
-          <option>Hall Three</option>
-          <option>Hall Three A</option>
-          <option>Hall Four</option>
-          <option>Hall Five</option>
-          <option>Toy Fair</option>
-        </select>
-      </label>
-    </div>
-    <div class="av-grid" id="av-grid">
+  <div class="av-grid" id="av-grid">
     <article class="av-card" data-slug="map" data-name="" data-hall="" data-cats="" data-haystack="    ">
       <header class="av-head">
         <div class="ex-logo ex-logo-placeholder">?</div>
@@ -24326,6 +24413,23 @@ Social - Daggerheart &amp; Candela sessions</p>
       </div>
     </article>
     </div>
+</section>
+</div>
+
+<div class="panel" data-panel="info">
+<section>
+  <h2>Hall map</h2>
+  <p class="lede">
+    UKGE's own map blocks embedding (their site sends an X-Frame-Options header), so the button opens it in a new tab.
+    Cross-reference stand numbers from the cards above on the map view.
+  </p>
+  <div class="map-wrap" style="padding: 24px; text-align: center;">
+    <a class="av-toggle" href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/map/" target="_blank" rel="noopener" style="display:inline-flex; gap:10px; align-items:center; text-decoration:none">
+      <span style="font-size:18px">🗺</span> Open official UKGE map
+    </a>
+    <div style="margin-top: 16px; color: var(--ink-dim); font-size: 13px;">
+      Halls used in 2026: Hall One · Hall Two · Hall Three · Hall Three A · Hall Four · Hall Five · Toy Fair
+    </div>
   </div>
 </section>
 
@@ -24335,6 +24439,7 @@ Social - Daggerheart &amp; Candela sessions</p>
   <div class="tag-cloud"><strong style="color:var(--accent)">Categories:</strong> <span class="tag">Card Game <span class="tag-w">256</span></span> · <span class="tag">Animals <span class="tag-w">163</span></span> · <span class="tag">Fantasy <span class="tag-w">160</span></span> · <span class="tag">Territory Building <span class="tag-w">140</span></span> · <span class="tag">Economic <span class="tag-w">120</span></span> · <span class="tag">Medieval <span class="tag-w">110</span></span> · <span class="tag">Science Fiction <span class="tag-w">103</span></span> · <span class="tag">City Building <span class="tag-w">87</span></span></div>
   <div class="tag-cloud" style="margin-top:10px"><strong style="color:var(--accent)">Mechanics:</strong> <span class="tag">Hand Management <span class="tag-w">273</span></span> · <span class="tag">End Game Bonuses <span class="tag-w">250</span></span> · <span class="tag">Open Drafting <span class="tag-w">243</span></span> · <span class="tag">Contracts <span class="tag-w">158</span></span> · <span class="tag">Pattern Building <span class="tag-w">147</span></span> · <span class="tag">Dice Rolling <span class="tag-w">135</span></span> · <span class="tag">Income <span class="tag-w">133</span></span> · <span class="tag">Set Collection <span class="tag-w">129</span></span></div>
 </section>
+</div>
 
 <footer>
   Generated from BGG collection + UKGE exhibitor listing + BGG hotness. <a href="https://github.com/Kieranties/ukge-companion" target="_blank" rel="noopener">Source on GitHub</a>.
@@ -24402,7 +24507,31 @@ Social - Daggerheart &amp; Candela sessions</p>
     applyTheme(next);
   });
 
-  // Per-card visited + skip + notes
+  // Per-card visit/revisit/skip/notes. State model is single 'status' field:
+  //   undefined → 'visited' → 'revisit' → undefined (cycle on tap)
+  //   plus an orthogonal 'skipped' flag.
+  function statusOf(entry) {
+    return entry.status || (entry.visited ? 'visited' : '');
+  }
+  function cycleVisit(entry) {
+    const cur = statusOf(entry);
+    if (!cur) {
+      entry.status = 'visited';
+      entry.visitedAt = new Date().toISOString();
+    } else if (cur === 'visited') {
+      entry.status = 'revisit';
+      entry.revisitAt = new Date().toISOString();
+    } else {
+      delete entry.status;
+      delete entry.visitedAt;
+      delete entry.revisitAt;
+    }
+    // clean up legacy boolean
+    delete entry.visited;
+    // visiting clears skipped
+    delete entry.skipped;
+  }
+
   const allCards = Array.from(document.querySelectorAll('.ex-card, .dx-card, .av-card'));
   for (const card of allCards) {
     const slug = card.dataset.slug;
@@ -24414,13 +24543,17 @@ Social - Daggerheart &amp; Candela sessions</p>
     const notesText = card.querySelector('[data-role="notes-text"]');
 
     function syncUI() {
-      const visited = !!entry.visited;
+      const status = statusOf(entry);
       const skipped = !!entry.skipped;
-      card.classList.toggle('visited', visited);
+      card.classList.toggle('visited', status === 'visited');
+      card.classList.toggle('revisit', status === 'revisit');
       card.classList.toggle('skipped', skipped);
       if (visitBtn) {
-        visitBtn.textContent = visited ? '✓ Visited' : 'Mark as visited';
-        visitBtn.classList.toggle('on', visited);
+        if (status === 'revisit') visitBtn.textContent = '★ Visit again';
+        else if (status === 'visited') visitBtn.textContent = '✓ Visited';
+        else visitBtn.textContent = 'Mark as visited';
+        visitBtn.classList.toggle('visited', status === 'visited');
+        visitBtn.classList.toggle('revisit', status === 'revisit');
       }
       if (skipBtn) {
         skipBtn.textContent = skipped ? 'Skipped' : 'Skip';
@@ -24431,16 +24564,13 @@ Social - Daggerheart &amp; Candela sessions</p>
       if (notesText && notesText.value !== (entry.notes || '')) notesText.value = entry.notes || '';
     }
     syncUI();
-    visitBtn?.addEventListener('click', () => {
-      entry.visited = !entry.visited;
-      if (entry.visited) { entry.visitedAt = new Date().toISOString(); delete entry.skipped; }
-      else delete entry.visitedAt;
-      save(); refreshAll();
-    });
+    visitBtn?.addEventListener('click', () => { cycleVisit(entry); save(); refreshAll(); });
     skipBtn?.addEventListener('click', () => {
       entry.skipped = !entry.skipped;
-      if (entry.skipped) { entry.skippedAt = new Date().toISOString(); delete entry.visited; }
-      else delete entry.skippedAt;
+      if (entry.skipped) {
+        entry.skippedAt = new Date().toISOString();
+        delete entry.status; delete entry.visited;
+      } else delete entry.skippedAt;
       save(); refreshAll();
     });
     notesBtn?.addEventListener('click', () => {
@@ -24462,12 +24592,17 @@ Social - Daggerheart &amp; Candela sessions</p>
     for (const card of allCards) {
       const slug = card.dataset.slug;
       const entry = state[slug] || {};
-      card.classList.toggle('visited', !!entry.visited);
+      const status = statusOf(entry);
+      card.classList.toggle('visited', status === 'visited');
+      card.classList.toggle('revisit', status === 'revisit');
       card.classList.toggle('skipped', !!entry.skipped);
       const vb = card.querySelector('[data-action="toggle-visit"]');
       if (vb) {
-        vb.textContent = entry.visited ? '✓ Visited' : 'Mark as visited';
-        vb.classList.toggle('on', !!entry.visited);
+        if (status === 'revisit') vb.textContent = '★ Visit again';
+        else if (status === 'visited') vb.textContent = '✓ Visited';
+        else vb.textContent = 'Mark as visited';
+        vb.classList.toggle('visited', status === 'visited');
+        vb.classList.toggle('revisit', status === 'revisit');
       }
       const sb = card.querySelector('[data-action="toggle-skip"]');
       if (sb) {
@@ -24489,12 +24624,13 @@ Social - Daggerheart &amp; Candela sessions</p>
   const dxHall = document.getElementById('dx-hall');
   const avFilter = document.getElementById('av-filter');
   const avHall = document.getElementById('av-hall');
-  const visitedOnlyBtn = document.getElementById('visited-only');
-  const unvisitedOnlyBtn = document.getElementById('unvisited-only');
+  const statusPills = Array.from(document.querySelectorAll('.status-pill'));
   const hideSkippedBtn = document.getElementById('hide-skipped');
-  let visitedFilter = '';
+  let statusFilter = 'all'; // all | unvisited | visited | revisit
   let hideSkipped = true;
   hideSkippedBtn.classList.add('active');
+  // Set initial pill state
+  statusPills.find(p => p.dataset.status === 'all')?.classList.add('active');
 
   function applyFilters() {
     const q = (globalQ?.value || '').toLowerCase().trim();
@@ -24515,17 +24651,19 @@ Social - Daggerheart &amp; Candela sessions</p>
       const sQ = isEx ? exQ : isDx ? dxQ : isAv ? avQ : '';
       const sH = isEx ? exH : isDx ? dxH : isAv ? avH : '';
       const visited = c.classList.contains('visited');
+      const revisit = c.classList.contains('revisit');
       const skipped = c.classList.contains('skipped');
       const passesGlobal = !q || hay.includes(q);
       const passesSection = !sQ || hay.includes(sQ);
       const passesHall = !sH || hall === sH;
-      const passesVisit = isHot ? true : (
-        !visitedFilter ||
-        (visitedFilter === 'visited' && visited) ||
-        (visitedFilter === 'unvisited' && !visited)
-      );
+      let passesStatus = true;
+      if (!isHot) {
+        if (statusFilter === 'unvisited') passesStatus = !visited && !revisit;
+        else if (statusFilter === 'visited') passesStatus = visited;
+        else if (statusFilter === 'revisit') passesStatus = revisit;
+      }
       const passesSkip = isHot ? true : (!hideSkipped || !skipped);
-      c.classList.toggle('hidden', !(passesGlobal && passesSection && passesHall && passesVisit && passesSkip));
+      c.classList.toggle('hidden', !(passesGlobal && passesSection && passesHall && passesStatus && passesSkip));
     }
     if (exSort) {
       const key = exSort.value;
@@ -24545,18 +24683,13 @@ Social - Daggerheart &amp; Candela sessions</p>
   }
   [globalQ, exFilter, dxFilter, avFilter].forEach(el => el?.addEventListener('input', applyFilters));
   [exHall, dxHall, avHall, exSort].forEach(el => el?.addEventListener('change', applyFilters));
-  visitedOnlyBtn?.addEventListener('click', () => {
-    visitedFilter = visitedFilter === 'visited' ? '' : 'visited';
-    visitedOnlyBtn.classList.toggle('active', visitedFilter === 'visited');
-    unvisitedOnlyBtn.classList.remove('active');
-    applyFilters();
-  });
-  unvisitedOnlyBtn?.addEventListener('click', () => {
-    visitedFilter = visitedFilter === 'unvisited' ? '' : 'unvisited';
-    unvisitedOnlyBtn.classList.toggle('active', visitedFilter === 'unvisited');
-    visitedOnlyBtn.classList.remove('active');
-    applyFilters();
-  });
+  for (const pill of statusPills) {
+    pill.addEventListener('click', () => {
+      statusFilter = pill.dataset.status || 'all';
+      for (const p of statusPills) p.classList.toggle('active', p === pill);
+      applyFilters();
+    });
+  }
   hideSkippedBtn?.addEventListener('click', () => {
     hideSkipped = !hideSkipped;
     hideSkippedBtn.classList.toggle('active', hideSkipped);
@@ -24592,9 +24725,11 @@ Social - Daggerheart &amp; Candela sessions</p>
       const name = c.querySelector('.ex-title h3 a')?.textContent || '';
       const stand = c.querySelector('.ex-loc .stand')?.textContent || '';
       const url = c.querySelector('.ex-title h3 a')?.href || '#';
+      const status = statusOf(entry);
       (groups[hall] = groups[hall] || []).push({
         slug, name, stand, url,
-        visited: !!entry.visited,
+        visited: status === 'visited',
+        revisit: status === 'revisit',
         skipped: !!entry.skipped,
         sortKey: standSortKey(stand)
       });
@@ -24614,11 +24749,12 @@ Social - Daggerheart &amp; Candela sessions</p>
       const remaining = stops.filter(s => !s.visited && !s.skipped).length;
       h += `<div class="route-hall"><h3>${hall} <span class="hall-count">${stops.length} stops · ${remaining} to do</span></h3>`;
       for (const s of stops) {
-        const cls = s.visited ? 'done' : s.skipped ? 'skipped' : '';
+        const cls = s.visited ? 'done' : s.revisit ? 'revisit' : s.skipped ? 'skipped' : '';
+        const icon = s.revisit ? '★' : s.visited ? '✓' : s.skipped ? '⊘' : '';
         h += `<div class="route-stop ${cls}">
           <span class="stop-num">${s.stand || '—'}</span>
           <span class="stop-name"><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a></span>
-          <span class="stop-mini">${s.visited ? '✓' : s.skipped ? '⊘' : ''}</span>
+          <span class="stop-mini">${icon}</span>
         </div>`;
       }
       h += '</div>';
@@ -24627,14 +24763,20 @@ Social - Daggerheart &amp; Candela sessions</p>
   }
   buildRoute();
 
-  // All-vendors toggle
-  const avToggle = document.getElementById('av-toggle');
-  const avSection = document.getElementById('av-section');
-  const avCardCount = document.querySelectorAll('.av-card').length;
-  avToggle?.addEventListener('click', () => {
-    const expanded = avSection.classList.toggle('expanded');
-    avToggle.textContent = expanded ? 'Hide full list' : `Show all ${avCardCount} exhibitors`;
-  });
+  // Tabs — hash-routed so back/forward + sharing work.
+  const tabs = Array.from(document.querySelectorAll('.tab'));
+  const panels = Array.from(document.querySelectorAll('.panel'));
+  function showTab(id) {
+    if (!id || !panels.some(p => p.dataset.panel === id)) id = 'for-you';
+    for (const t of tabs) t.classList.toggle('active', t.dataset.tab === id);
+    for (const p of panels) p.classList.toggle('active', p.dataset.panel === id);
+    if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id);
+    // scroll to top of tab content on switch
+    document.querySelector('.tabs')?.scrollIntoView({block: 'start', behavior: 'instant'});
+  }
+  for (const t of tabs) t.addEventListener('click', () => showTab(t.dataset.tab));
+  window.addEventListener('hashchange', () => showTab(location.hash.replace('#', '')));
+  showTab(location.hash.replace('#', '') || 'for-you');
 
   // Export
   function buildMarkdown() {
@@ -24652,10 +24794,22 @@ Social - Daggerheart &amp; Candela sessions</p>
         stand: card.querySelector('.stand')?.textContent || ''
       };
     }
-    const visited = Object.entries(state).filter(([_, v]) => v.visited);
+    const visited = Object.entries(state).filter(([_, v]) => (v.status === 'visited') || (v.visited && !v.status));
     if (visited.length) {
       lines.push('## Visited stands');
       for (const [slug, v] of visited) {
+        const info = lookup(slug);
+        lines.push(`- **${info.name}** — ${info.hall} ${info.stand}`);
+        if (v.notes && v.notes.trim()) {
+          for (const ln of v.notes.split(/\r?\n/)) lines.push(`  - ${ln}`);
+        }
+      }
+      lines.push('');
+    }
+    const revisit = Object.entries(state).filter(([_, v]) => v.status === 'revisit');
+    if (revisit.length) {
+      lines.push('## Visit again ★');
+      for (const [slug, v] of revisit) {
         const info = lookup(slug);
         lines.push(`- **${info.name}** — ${info.hall} ${info.stand}`);
         if (v.notes && v.notes.trim()) {
