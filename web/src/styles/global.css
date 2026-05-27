@@ -169,11 +169,17 @@ a:hover {
 }
 
 /* ---------- Sticky bars -------------------------------------------------- */
-/* Both the search bar and tab bar are full-width sticky elements. Their inner
- * .container constrains content. This avoids the negative-margin pattern that
- * fights overflow-x: hidden on body. */
-.bar {
+/* Search + tabs share a single sticky container so the two bars never get
+ * separated by a gap (which would happen if each were independently sticky
+ * with a hard-coded top offset — the search bar's height changes when the
+ * filter tray opens/closes). The wrapper sticks; the inner bars are
+ * normal block elements. */
+.sticky-stack {
   position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.bar {
   background: var(--bar-bg);
   /* Strong blur + saturate gives a frosted-glass look so the body's
    * radial gradient continues visually underneath, instead of being
@@ -183,13 +189,9 @@ a:hover {
   border-bottom: 1px solid var(--line);
 }
 #search-bar {
-  top: 0;
-  z-index: 30;
   padding: 10px 0;
 }
 #tab-bar {
-  top: var(--search-bar-h, 96px);
-  z-index: 25;
   padding: 8px 0;
 }
 
