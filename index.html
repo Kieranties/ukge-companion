@@ -1,0 +1,2508 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a1410">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>UKGE 2026 — Personalised Exhibitor Guide for Kieranties</title>
+<style>
+  :root {
+    --bg: #1a1410;
+    --panel: #2a1f17;
+    --panel-2: #3a2c20;
+    --ink: #f5e7d0;
+    --ink-dim: #b9a486;
+    --accent: #e8a73f;
+    --accent-2: #d6602f;
+    --green: #6fa86c;
+    --line: rgba(245, 231, 208, 0.12);
+    --shadow: 0 2px 0 rgba(0,0,0,0.4), 0 4px 18px rgba(0,0,0,0.45);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    background:
+      radial-gradient(ellipse at top left, #2a1f17 0%, transparent 55%),
+      radial-gradient(ellipse at bottom right, #3a2516 0%, transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    font-family: 'Iowan Old Style', 'Cambria', Georgia, serif;
+    margin: 0;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+  body { padding: 0 16px 80px; }
+  header.top {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 28px 0 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  header.top h1 {
+    margin: 0 0 4px;
+    font-size: clamp(24px, 5vw, 38px);
+    letter-spacing: 0.5px;
+    color: var(--accent);
+    font-weight: 600;
+    line-height: 1.15;
+  }
+  header.top .sub { color: var(--ink-dim); font-size: clamp(13px, 2.4vw, 16px); }
+  .meta-strip {
+    max-width: 1200px;
+    margin: 18px auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  @media (min-width: 600px) { .meta-strip { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 900px) { .meta-strip { grid-template-columns: repeat(5, 1fr); } }
+  .meta-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+  }
+  .meta-card .v { font-size: clamp(22px, 5vw, 28px); color: var(--accent); font-weight: 600; }
+  .meta-card .k { color: var(--ink-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+  section { max-width: 1200px; margin: 28px auto; }
+  section h2 {
+    color: var(--accent);
+    font-size: clamp(19px, 3.5vw, 24px);
+    margin: 0 0 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px;
+    line-height: 1.2;
+  }
+  section h2 .count { color: var(--ink-dim); font-size: 13px; font-weight: 400; }
+  section .lede { color: var(--ink-dim); margin: 0 0 16px; max-width: 70ch; font-size: 14px; }
+  /* Global sticky search bar */
+  .global-search {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: linear-gradient(180deg, var(--bg) 0%, rgba(26,20,16,0.85) 100%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 10px 0;
+    margin: 0 -16px 0;
+    padding-left: 16px;
+    padding-right: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .global-search .wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .global-search input {
+    flex: 1;
+    min-width: 0;
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 16px; /* >=16 to suppress iOS zoom */
+  }
+  .global-search button {
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .global-search button.active { border-color: var(--accent); color: var(--accent); }
+  .global-search .hint { color: var(--ink-dim); font-size: 11px; margin-top: 4px; }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 6px 0 14px;
+    align-items: center;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+  }
+  .controls label { color: var(--ink-dim); font-size: 13px; display: inline-flex; gap: 6px; align-items: center; }
+  .controls input, .controls select {
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 14px;
+    max-width: 100%;
+  }
+  .controls input { min-width: 0; flex: 1; min-width: 180px; }
+  .ex-grid, .dx-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 760px) { .ex-grid { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 1100px) { .dx-grid { grid-template-columns: 1fr 1fr 1fr; } }
+  @media (min-width: 760px) and (max-width: 1099px) { .dx-grid { grid-template-columns: 1fr 1fr; } }
+  .ex-card, .dx-card {
+    background: linear-gradient(180deg, var(--panel) 0%, #261b13 100%);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .ex-card.visited {
+    border-color: rgba(111, 168, 108, 0.45);
+    box-shadow: 0 0 0 1px rgba(111, 168, 108, 0.25), var(--shadow);
+  }
+  .ex-card.visited::before {
+    content: "✓ visited";
+    position: absolute;
+    top: -10px;
+    right: 12px;
+    background: var(--green);
+    color: #0f1a0e;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .ex-head, .dx-head {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  @media (min-width: 480px) {
+    .ex-head, .dx-head { grid-template-columns: 44px 1fr auto; }
+  }
+  .ex-stats { grid-column: 1 / -1; }
+  @media (min-width: 480px) { .ex-stats { grid-column: auto; } }
+  .ex-rank, .dx-rank {
+    background: var(--accent);
+    color: #1a1410;
+    font-weight: 700;
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.25);
+  }
+  @media (min-width: 480px) {
+    .ex-rank, .dx-rank { width: 44px; height: 44px; font-size: 15px; }
+  }
+  .dx-rank { background: var(--green); color: #0f1a0e; }
+  .ex-title h3, .dx-title h4 { margin: 0; font-size: 17px; color: var(--ink); line-height: 1.25; }
+  @media (min-width: 480px) { .ex-title h3 { font-size: 19px; } .dx-title h4 { font-size: 18px; } }
+  .ex-title h3 a, .dx-title h4 a { color: inherit; text-decoration: none; }
+  .ex-title h3 a:hover, .dx-title h4 a:hover { color: var(--accent); text-decoration: underline; }
+  .ex-loc, .dx-loc {
+    color: var(--ink-dim);
+    font-size: 12px;
+    margin-top: 4px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .ex-loc .stand, .dx-loc .stand {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1px 8px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+  .ex-stats { display: flex; gap: 8px; margin-top: 10px; }
+  .ex-stats .stat { text-align: center; min-width: 44px; flex: 1; background: rgba(58,44,32,0.4); border-radius: 8px; padding: 4px 6px; }
+  @media (min-width: 480px) { .ex-stats { margin-top: 0; } .ex-stats .stat { flex: none; background: none; padding: 0; } }
+  .ex-stats strong { display: block; color: var(--accent); font-size: 17px; }
+  .ex-stats span { font-size: 10px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.06em; }
+  .ex-cats, .dx-cats {
+    margin: 10px 0 6px;
+    color: var(--ink-dim);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+  .ex-desc, .dx-desc {
+    color: var(--ink);
+    font-size: 14px;
+    margin: 6px 0 10px;
+    opacity: 0.85;
+  }
+  details.ex-games { margin-top: 4px; border-top: 1px dashed var(--line); padding-top: 8px; }
+  details.ex-games summary { cursor: pointer; color: var(--accent-2); font-size: 14px; padding: 4px 0; }
+  ul.game-list { list-style: none; padding: 8px 0 0; margin: 0; }
+  ul.game-list li.game-chip {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  ul.game-list li.game-chip > * { display: inline; }
+  .g-name { color: var(--ink); font-weight: 600; }
+  .g-year { color: var(--ink-dim); }
+  .g-plays { color: var(--accent); margin-left: 8px; font-size: 12px; }
+  .g-pub { color: var(--ink-dim); margin-left: 8px; font-size: 12px; font-style: italic; }
+  .g-meta { color: var(--ink-dim); font-size: 12px; margin-left: 8px; }
+  .dx-score { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; font-size: 12px; color: var(--green); align-self: start; }
+  .dx-kw { color: var(--ink-dim); font-size: 12px; margin-top: 6px; }
+  .tag-cloud { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
+  .tag-cloud .tag { display: inline-block; margin: 4px 8px 4px 0; color: var(--ink); font-size: 13px; }
+  .tag-cloud .tag-w { color: var(--ink-dim); font-size: 11px; }
+  footer {
+    max-width: 1200px;
+    margin: 50px auto 0;
+    padding: 20px 0 0;
+    border-top: 1px solid var(--line);
+    color: var(--ink-dim);
+    font-size: 13px;
+  }
+  footer a { color: var(--accent-2); }
+  .hidden { display: none !important; }
+  .off-topic {
+    display: inline-block;
+    background: rgba(214, 96, 47, 0.18);
+    color: var(--accent-2);
+    border: 1px solid rgba(214, 96, 47, 0.4);
+    border-radius: 999px;
+    padding: 1px 8px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    margin-left: 6px;
+    vertical-align: middle;
+    cursor: help;
+  }
+  /* Visited + notes UI */
+  .booth-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+    align-items: center;
+  }
+  .visit-btn {
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    min-height: 36px;
+    flex: 1 1 auto;
+    min-width: 130px;
+  }
+  .visit-btn.on { background: var(--green); color: #0f1a0e; border-color: transparent; font-weight: 600; }
+  .notes-toggle {
+    background: transparent;
+    color: var(--accent-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    min-height: 36px;
+    flex: 0 1 auto;
+  }
+  .notes-toggle.has-notes { color: var(--accent); border-color: rgba(232, 167, 63, 0.4); }
+  .notes-area {
+    flex-basis: 100%;
+    margin-top: 8px;
+  }
+  .notes-area textarea {
+    width: 100%;
+    min-height: 80px;
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+  }
+  /* Hit highlighting */
+  .hit { background: rgba(232, 167, 63, 0.25); border-radius: 3px; padding: 0 2px; }
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 13px;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    transition: opacity 200ms ease, transform 200ms ease;
+    pointer-events: none;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (max-width: 480px) {
+    body { padding: 0 12px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>UK Games Expo 2026 — Your Personalised Exhibitor Guide</h1>
+  <div class="sub">29–31 May · NEC Birmingham · Built for <strong>Kieranties</strong> from your BGG collection</div>
+</header>
+
+<div class="global-search">
+  <div class="wrap">
+    <input id="global-q" type="search" placeholder="Search exhibitor, game, publisher, category, hall, stand…" autocomplete="off" inputmode="search">
+    <button id="visited-only" type="button" title="Show only stands you've marked as visited">Visited</button>
+    <button id="unvisited-only" type="button" title="Hide stands you've already visited">Unvisited</button>
+  </div>
+</div>
+
+<div class="meta-strip">
+  <div class="meta-card"><div class="v">116</div><div class="k">games in collection</div></div>
+  <div class="meta-card"><div class="v">581</div><div class="k">total plays logged</div></div>
+  <div class="meta-card"><div class="v">868</div><div class="k">exhibitors at show</div></div>
+  <div class="meta-card"><div class="v">32</div><div class="k">match your collection</div></div>
+  <div class="meta-card"><div class="v">59%</div><div class="k">collection coverage</div></div>
+</div>
+
+<section>
+  <h2>Top recommendations <span class="count">— exhibitors who publish games you actually play</span></h2>
+  <p class="lede">
+    Ranked by play-weighted publisher matches in your BGG collection. Each game's contribution is capped at 25 plays so one
+    favourite (Carcassonne, we see you) doesn't drown out the rest. Click an exhibitor to open their UKGE page; expand the
+    panel for the underlying games and play counts.
+  </p>
+  <div class="controls">
+    <label>Filter <input id="ex-filter" placeholder="exhibitor, hall, category…"></label>
+    <label>Hall
+      <select id="ex-hall">
+        <option value="">all</option>
+        <option>Hall One</option>
+        <option>Hall Two</option>
+        <option>Hall Three</option>
+        <option>Hall Four</option>
+        <option>Hall Five</option>
+        <option>Toy Fair</option>
+      </select>
+    </label>
+    <label>Sort
+      <select id="ex-sort">
+        <option value="score">recommendation score</option>
+        <option value="games">number of games</option>
+        <option value="plays">total plays</option>
+        <option value="name">name (A–Z)</option>
+        <option value="hall">hall + stand</option>
+      </select>
+    </label>
+  </div>
+  <div class="ex-grid" id="ex-grid">
+    
+    <article class="ex-card" data-slug="asmodee-uk-5" data-name="asmodee uk" data-hall="hall two" data-cats="" data-score="113" data-games="14" data-plays="99" data-ontopic="1" data-haystack="asmodee uk   hall two 2-t52 wingspan asmodee 7 wonders duel asmodee takenoko asmodee daybreak (english edition, first printing) asmodee small world asmodee codenames: duet asmodee patchwork asmodee hive pocket asmodee exploding kittens asmodee coup asmodee spot it! asmodee unlock!: exotic adventures (english edition 2019) asmodee unlock!: mystery adventures (english edition) asmodee unlock!: secret adventures (english edition) asmodee">
+      <header class="ex-head">
+        <div class="ex-rank">#1</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/asmodee-uk-5/" target="_blank" rel="noopener">Asmodee UK</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-T52</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>14</strong><span>games</span></div>
+          <div class="stat"><strong>99</strong><span>plays</span></div>
+          <div class="stat"><strong>113</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats"></div>
+      
+      <details class="ex-games">
+        <summary>14 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Wingspan</span><span class="g-year"> (2019)</span><span class="g-plays" title="Plays">23× plays</span><span class="g-pub" title="Publisher on BGG">via asmodee</span><span class="g-meta"> · BGG 7.85</span></li>
+<li class="game-chip"><span class="g-name">7 Wonders Duel</span><span class="g-year"> (2015)</span><span class="g-plays" title="Plays">21× plays</span><span class="g-pub" title="Publisher on BGG">via asmodee</span><span class="g-meta"> · BGG 7.95</span></li>
+<li class="game-chip"><span class="g-name">Takenoko</span><span class="g-year"> (2011)</span><span class="g-plays" title="Plays">14× plays</span><span class="g-pub" title="Publisher on BGG">via asmodee</span><span class="g-meta"> · BGG 7.06</span></li>
+<li class="game-chip"><span class="g-name">Daybreak (English edition, first printing)</span><span class="g-year"> (2023)</span><span class="g-plays" title="Plays">12× plays</span><span class="g-pub" title="Publisher on BGG">via asmodee</span><span class="g-meta"> · BGG 7.05</span></li>
+<li class="game-chip"><span class="g-name">Small World</span><span class="g-year"> (2009)</span><span class="g-plays" title="Plays">12× plays</span><span class="g-pub" title="Publisher on BGG">via asmodee</span><span class="g-meta"> · BGG 7.08</span></li>
+<li class="game-chip"><span class="g-name">Codenames: Duet</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">9× plays</span><span class="g-pub" title="Publisher on BGG">via asmodee</span><span class="g-meta"> · BGG 7.23</span></li>
+<li class="game-chip"><span class="g-name">Patchwork</span><span class="g-year"> (2014)</span><span class="g-plays" title="Plays">5× plays</span><span class="g-pub" title="Publisher on BGG">via asmodee</span><span class="g-meta"> · BGG 7.47</span></li>
+<li class="game-chip"><span class="g-name">Hive Pocket</span><span class="g-year"> (2010)</span><span class="g-plays" title="Plays">2× plays</span><span class="g-pub" title="Publisher on BGG">via asmodee</span><span class="g-meta"> · BGG 7.34</span></li>
+<li class="game-chip"><span class="g-name">Exploding Kittens</span><span class="g-year"> (2015)</span><span class="g-plays" title="Plays">1× plays</span><span class="g-pub" title="Publisher on BGG">via asmodee</span><span class="g-meta"> · BGG 5.89</span></li>
+<li class="game-chip"><span class="g-name">Coup</span><span class="g-year"> (2012)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via asmodee</span><span class="g-meta"> · BGG 6.83</span></li>
+<li class="game-chip"><span class="g-name">Spot it!</span><span class="g-year"> (2009)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via asmodee</span><span class="g-meta"> · BGG 6.36</span></li>
+<li class="game-chip"><span class="g-name">Unlock!: Exotic Adventures (English edition 2019)</span><span class="g-year"> (2019)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via asmodee</span><span class="g-meta"> · BGG 6.41</span></li>
+<li class="game-chip"><span class="g-name">Unlock!: Mystery Adventures (English edition)</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via asmodee</span><span class="g-meta"> · BGG 6.64</span></li>
+<li class="game-chip"><span class="g-name">Unlock!: Secret Adventures (English edition)</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via asmodee</span><span class="g-meta"> · BGG 6.64</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="pegasus-spiele-gmbh" data-name="pegasus spiele gmbh" data-hall="hall three" data-cats="board games games retailer games publisher" data-score="111" data-games="10" data-plays="102" data-ontopic="1" data-haystack="pegasus spiele gmbh board games games retailer games publisher german board game publisher hall three 3-430 everdell pegasus spiele kingdomino pegasus spiele azul pegasus spiele takenoko pegasus spiele pandemic pegasus spiele castle panic pegasus spiele spirit island pegasus spiele living forest pegasus spiele tokaido pegasus spiele spirit island: branch &amp; claw pegasus spiele">
+      <header class="ex-head">
+        <div class="ex-rank">#2</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/pegasus-spiele-gmbh/" target="_blank" rel="noopener">Pegasus Spiele GmbH</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Three</span>
+            <span class="stand">3-430</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>10</strong><span>games</span></div>
+          <div class="stat"><strong>102</strong><span>plays</span></div>
+          <div class="stat"><strong>111</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Games Retailer · Games Publisher</div>
+      <p class="ex-desc">German Board Game Publisher</p>
+      <details class="ex-games">
+        <summary>10 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Everdell</span><span class="g-year"> (2018)</span><span class="g-plays" title="Plays">26× plays</span><span class="g-pub" title="Publisher on BGG">via Pegasus Spiele</span><span class="g-meta"> · BGG 7.81</span></li>
+<li class="game-chip"><span class="g-name">Kingdomino</span><span class="g-year"> (2016)</span><span class="g-plays" title="Plays">22× plays</span><span class="g-pub" title="Publisher on BGG">via Pegasus Spiele</span><span class="g-meta"> · BGG 7.17</span></li>
+<li class="game-chip"><span class="g-name">Azul</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">19× plays</span><span class="g-pub" title="Publisher on BGG">via Pegasus Spiele</span><span class="g-meta"> · BGG 7.61</span></li>
+<li class="game-chip"><span class="g-name">Takenoko</span><span class="g-year"> (2011)</span><span class="g-plays" title="Plays">14× plays</span><span class="g-pub" title="Publisher on BGG">via Pegasus Spiele</span><span class="g-meta"> · BGG 7.06</span></li>
+<li class="game-chip"><span class="g-name">Pandemic</span><span class="g-year"> (2008)</span><span class="g-plays" title="Plays">9× plays</span><span class="g-pub" title="Publisher on BGG">via Pegasus Spiele</span><span class="g-meta"> · BGG 7.40</span></li>
+<li class="game-chip"><span class="g-name">Castle Panic</span><span class="g-year"> (2009)</span><span class="g-plays" title="Plays">5× plays</span><span class="g-pub" title="Publisher on BGG">via Pegasus Spiele</span><span class="g-meta"> · BGG 6.46</span></li>
+<li class="game-chip"><span class="g-name">Spirit Island</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">4× plays</span><span class="g-pub" title="Publisher on BGG">via Pegasus Spiele</span><span class="g-meta"> · BGG 8.14</span></li>
+<li class="game-chip"><span class="g-name">Living Forest</span><span class="g-year"> (2021)</span><span class="g-plays" title="Plays">2× plays</span><span class="g-pub" title="Publisher on BGG">via Pegasus Spiele</span><span class="g-meta"> · BGG 6.79</span></li>
+<li class="game-chip"><span class="g-name">Tokaido</span><span class="g-year"> (2012)</span><span class="g-plays" title="Plays">1× plays</span><span class="g-pub" title="Publisher on BGG">via Pegasus Spiele</span><span class="g-meta"> · BGG 6.74</span></li>
+<li class="game-chip"><span class="g-name">Spirit Island: Branch &amp; Claw</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Pegasus Spiele</span><span class="g-meta"> · BGG 8.12</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="vivid-imaginations-ltd-ta-lucky-duck-games" data-name="lucky duck games" data-hall="hall two" data-cats="board games games publisher" data-score="82" data-games="8" data-plays="74" data-ontopic="1" data-haystack="lucky duck games board games games publisher play and buy the latest games including purramid and borealis: arctic expeditions! hall two 2-764 the isle of cats lucky duck games akropolis lucky duck games daybreak (english edition, first printing) lucky duck games flamecraft lucky duck games calico lucky duck games earth lucky duck games iki lucky duck games bristol 1350 lucky duck games">
+      <header class="ex-head">
+        <div class="ex-rank">#3</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/vivid-imaginations-ltd-ta-lucky-duck-games/" target="_blank" rel="noopener">Lucky Duck Games</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-764</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>8</strong><span>games</span></div>
+          <div class="stat"><strong>74</strong><span>plays</span></div>
+          <div class="stat"><strong>82</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Games Publisher</div>
+      <p class="ex-desc">Play and buy the latest games including Purramid and Borealis: Arctic Expeditions!</p>
+      <details class="ex-games">
+        <summary>8 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">The Isle of Cats</span><span class="g-year"> (2019)</span><span class="g-plays" title="Plays">24× plays</span><span class="g-pub" title="Publisher on BGG">via Lucky Duck Games</span><span class="g-meta"> · BGG 7.37</span></li>
+<li class="game-chip"><span class="g-name">Akropolis</span><span class="g-year"> (2022)</span><span class="g-plays" title="Plays">15× plays</span><span class="g-pub" title="Publisher on BGG">via Lucky Duck Games</span><span class="g-meta"> · BGG 7.05</span></li>
+<li class="game-chip"><span class="g-name">Daybreak (English edition, first printing)</span><span class="g-year"> (2023)</span><span class="g-plays" title="Plays">12× plays</span><span class="g-pub" title="Publisher on BGG">via Lucky Duck Games</span><span class="g-meta"> · BGG 7.05</span></li>
+<li class="game-chip"><span class="g-name">Flamecraft</span><span class="g-year"> (2022)</span><span class="g-plays" title="Plays">11× plays</span><span class="g-pub" title="Publisher on BGG">via Lucky Duck Games</span><span class="g-meta"> · BGG 7.09</span></li>
+<li class="game-chip"><span class="g-name">Calico</span><span class="g-year"> (2020)</span><span class="g-plays" title="Plays">6× plays</span><span class="g-pub" title="Publisher on BGG">via Lucky Duck Games</span><span class="g-meta"> · BGG 7.25</span></li>
+<li class="game-chip"><span class="g-name">Earth</span><span class="g-year"> (2023)</span><span class="g-plays" title="Plays">5× plays</span><span class="g-pub" title="Publisher on BGG">via Lucky Duck Games</span><span class="g-meta"> · BGG 7.36</span></li>
+<li class="game-chip"><span class="g-name">IKI</span><span class="g-year"> (2015)</span><span class="g-plays" title="Plays">1× plays</span><span class="g-pub" title="Publisher on BGG">via Lucky Duck Games</span><span class="g-meta"> · BGG 7.03</span></li>
+<li class="game-chip"><span class="g-name">Bristol 1350</span><span class="g-year"> (2021)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Lucky Duck Games</span><span class="g-meta"> · BGG 6.18</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="publishing-technology-solutions" data-name="matagot" data-hall="hall four" data-cats="artist/author board games games publisher" data-score="65" data-games="3" data-plays="63" data-ontopic="1" data-haystack="matagot artist/author board games games publisher at matagot we love bringing people together around great board games! hall four 4-334 everdell matagot wingspan matagot takenoko matagot">
+      <header class="ex-head">
+        <div class="ex-rank">#4</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/publishing-technology-solutions/" target="_blank" rel="noopener">Matagot</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-334</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>3</strong><span>games</span></div>
+          <div class="stat"><strong>63</strong><span>plays</span></div>
+          <div class="stat"><strong>65</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Artist/Author · Board Games · Games Publisher</div>
+      <p class="ex-desc">At Matagot we love bringing people together around great board games!</p>
+      <details class="ex-games">
+        <summary>3 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Everdell</span><span class="g-year"> (2018)</span><span class="g-plays" title="Plays">26× plays</span><span class="g-pub" title="Publisher on BGG">via Matagot</span><span class="g-meta"> · BGG 7.81</span></li>
+<li class="game-chip"><span class="g-name">Wingspan</span><span class="g-year"> (2019)</span><span class="g-plays" title="Plays">23× plays</span><span class="g-pub" title="Publisher on BGG">via Matagot</span><span class="g-meta"> · BGG 7.85</span></li>
+<li class="game-chip"><span class="g-name">Takenoko</span><span class="g-year"> (2011)</span><span class="g-plays" title="Plays">14× plays</span><span class="g-pub" title="Publisher on BGG">via Matagot</span><span class="g-meta"> · BGG 7.06</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="hobby-japan" data-name="hobby japan" data-hall="hall four" data-cats="roleplaying games media" data-score="62" data-games="29" data-plays="177" data-ontopic="0" data-haystack="hobby japan roleplaying games media hobby japan rpg publishing team hall four 4-t93 7 wonders duel hobby japan azul hobby japan splendor hobby japan king of tokyo hobby japan takenoko hobby japan daybreak (english edition, first printing) hobby japan small world hobby japan deep blue hobby japan ticket to ride: europe hobby japan dominion: second edition hobby japan codenames: duet hobby japan pandemic hobby japan patchwork hobby japan 7 wonders duel: pantheon hobby japan jaipur hobby japan project l (english/french/german edition 2022) hobby japan exploding kittens hobby japan tokaido hobby japan exploding kittens: nsfw edition hobby japan icecool hobby japan spot it! hobby japan throw throw burrito hobby japan unlock!: epic adventures (english edition 2021) hobby japan unlock!: exotic adventures (english edition 2019) hobby japan unlock!: game adventures hobby japan unlock!: mystery adventures (english edition) hobby japan unlock!: mythic adventures (english edition 2021) hobby japan unlock!: secret adventures (english edition) hobby japan unlock!: timeless adventures (english edition 2021) hobby japan">
+      <header class="ex-head">
+        <div class="ex-rank">#5</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/hobby-japan/" target="_blank" rel="noopener">Hobby Japan</a> <span class="off-topic" title="UKGE categories don't include core board-game categories; this booth may be a different arm of the same publisher">tangential booth</span></h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-T93</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>29</strong><span>games</span></div>
+          <div class="stat"><strong>177</strong><span>plays</span></div>
+          <div class="stat"><strong>62</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Roleplaying Games · Media</div>
+      <p class="ex-desc">Hobby Japan RPG Publishing Team</p>
+      <details class="ex-games">
+        <summary>29 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">7 Wonders Duel</span><span class="g-year"> (2015)</span><span class="g-plays" title="Plays">21× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 7.95</span></li>
+<li class="game-chip"><span class="g-name">Azul</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">19× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 7.61</span></li>
+<li class="game-chip"><span class="g-name">Splendor</span><span class="g-year"> (2014)</span><span class="g-plays" title="Plays">18× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 7.29</span></li>
+<li class="game-chip"><span class="g-name">King of Tokyo</span><span class="g-year"> (2011)</span><span class="g-plays" title="Plays">14× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 7.01</span></li>
+<li class="game-chip"><span class="g-name">Takenoko</span><span class="g-year"> (2011)</span><span class="g-plays" title="Plays">14× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 7.06</span></li>
+<li class="game-chip"><span class="g-name">Daybreak (English edition, first printing)</span><span class="g-year"> (2023)</span><span class="g-plays" title="Plays">12× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 7.05</span></li>
+<li class="game-chip"><span class="g-name">Small World</span><span class="g-year"> (2009)</span><span class="g-plays" title="Plays">12× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 7.08</span></li>
+<li class="game-chip"><span class="g-name">Deep Blue</span><span class="g-year"> (2019)</span><span class="g-plays" title="Plays">11× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 5.98</span></li>
+<li class="game-chip"><span class="g-name">Ticket to Ride: Europe</span><span class="g-year"> (2005)</span><span class="g-plays" title="Plays">11× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 7.39</span></li>
+<li class="game-chip"><span class="g-name">Dominion: Second Edition</span><span class="g-year"> (2016)</span><span class="g-plays" title="Plays">10× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 7.40</span></li>
+<li class="game-chip"><span class="g-name">Codenames: Duet</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">9× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 7.23</span></li>
+<li class="game-chip"><span class="g-name">Pandemic</span><span class="g-year"> (2008)</span><span class="g-plays" title="Plays">9× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 7.40</span></li>
+<li class="game-chip"><span class="g-name">Patchwork</span><span class="g-year"> (2014)</span><span class="g-plays" title="Plays">5× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 7.47</span></li>
+<li class="game-chip"><span class="g-name">7 Wonders Duel: Pantheon</span><span class="g-year"> (2016)</span><span class="g-plays" title="Plays">4× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 7.62</span></li>
+<li class="game-chip"><span class="g-name">Jaipur</span><span class="g-year"> (2009)</span><span class="g-plays" title="Plays">4× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 7.36</span></li>
+<li class="game-chip"><span class="g-name">Project L (English/French/German edition 2022)</span><span class="g-year"> (2022)</span><span class="g-plays" title="Plays">2× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 7.11</span></li>
+<li class="game-chip"><span class="g-name">Exploding Kittens</span><span class="g-year"> (2015)</span><span class="g-plays" title="Plays">1× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 5.89</span></li>
+<li class="game-chip"><span class="g-name">Tokaido</span><span class="g-year"> (2012)</span><span class="g-plays" title="Plays">1× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 6.74</span></li>
+<li class="game-chip"><span class="g-name">Exploding Kittens: NSFW Edition</span><span class="g-year"> (2015)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 5.96</span></li>
+<li class="game-chip"><span class="g-name">ICECOOL</span><span class="g-year"> (2016)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 6.55</span></li>
+<li class="game-chip"><span class="g-name">Spot it!</span><span class="g-year"> (2009)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 6.36</span></li>
+<li class="game-chip"><span class="g-name">Throw Throw Burrito</span><span class="g-year"> (2019)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 5.91</span></li>
+<li class="game-chip"><span class="g-name">Unlock!: Epic Adventures (English edition 2021)</span><span class="g-year"> (2021)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 6.67</span></li>
+<li class="game-chip"><span class="g-name">Unlock!: Exotic Adventures (English edition 2019)</span><span class="g-year"> (2019)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 6.41</span></li>
+<li class="game-chip"><span class="g-name">Unlock!: Game Adventures</span><span class="g-year"> (2021)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 6.54</span></li>
+<li class="game-chip"><span class="g-name">Unlock!: Mystery Adventures (English edition)</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 6.64</span></li>
+<li class="game-chip"><span class="g-name">Unlock!: Mythic Adventures (English edition 2021)</span><span class="g-year"> (2021)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 6.49</span></li>
+<li class="game-chip"><span class="g-name">Unlock!: Secret Adventures (English edition)</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 6.64</span></li>
+<li class="game-chip"><span class="g-name">Unlock!: Timeless Adventures (English edition 2021)</span><span class="g-year"> (2021)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Hobby Japan</span><span class="g-meta"> · BGG 6.76</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="iello" data-name="iello" data-hall="hall two" data-cats="board games family games games publisher" data-score="54" data-games="5" data-plays="49" data-ontopic="1" data-haystack="iello board games family games games publisher from party games to strategy games, everyone can enjoy the iello games ! hall two 2-636 lost cities iello king of tokyo iello codenames: duet iello imhotep iello targi iello">
+      <header class="ex-head">
+        <div class="ex-rank">#6</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/iello/" target="_blank" rel="noopener">IELLO</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-636</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>5</strong><span>games</span></div>
+          <div class="stat"><strong>49</strong><span>plays</span></div>
+          <div class="stat"><strong>54</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Family Games · Games Publisher</div>
+      <p class="ex-desc">From party games to strategy games, everyone can enjoy the IELLO games !</p>
+      <details class="ex-games">
+        <summary>5 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Lost Cities</span><span class="g-year"> (1999)</span><span class="g-plays" title="Plays">18× plays</span><span class="g-pub" title="Publisher on BGG">via IELLO</span><span class="g-meta"> · BGG 7.15</span></li>
+<li class="game-chip"><span class="g-name">King of Tokyo</span><span class="g-year"> (2011)</span><span class="g-plays" title="Plays">14× plays</span><span class="g-pub" title="Publisher on BGG">via IELLO</span><span class="g-meta"> · BGG 7.01</span></li>
+<li class="game-chip"><span class="g-name">Codenames: Duet</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">9× plays</span><span class="g-pub" title="Publisher on BGG">via IELLO</span><span class="g-meta"> · BGG 7.23</span></li>
+<li class="game-chip"><span class="g-name">Imhotep</span><span class="g-year"> (2016)</span><span class="g-plays" title="Plays">6× plays</span><span class="g-pub" title="Publisher on BGG">via IELLO</span><span class="g-meta"> · BGG 6.90</span></li>
+<li class="game-chip"><span class="g-name">Targi</span><span class="g-year"> (2012)</span><span class="g-plays" title="Plays">2× plays</span><span class="g-pub" title="Publisher on BGG">via IELLO</span><span class="g-meta"> · BGG 7.40</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="kosmos-games" data-name="kosmos" data-hall="hall three a" data-cats="board games family games games publisher" data-score="44" data-games="4" data-plays="40" data-ontopic="1" data-haystack="kosmos board games family games games publisher kosmos games uk hall three a 3a-130 lost cities kosmos catan kosmos imhotep kosmos targi kosmos">
+      <header class="ex-head">
+        <div class="ex-rank">#7</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/kosmos-games/" target="_blank" rel="noopener">KOSMOS</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Three A</span>
+            <span class="stand">3A-130</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>4</strong><span>games</span></div>
+          <div class="stat"><strong>40</strong><span>plays</span></div>
+          <div class="stat"><strong>44</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Family Games · Games Publisher</div>
+      <p class="ex-desc">Kosmos Games UK</p>
+      <details class="ex-games">
+        <summary>4 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Lost Cities</span><span class="g-year"> (1999)</span><span class="g-plays" title="Plays">18× plays</span><span class="g-pub" title="Publisher on BGG">via KOSMOS</span><span class="g-meta"> · BGG 7.15</span></li>
+<li class="game-chip"><span class="g-name">Catan</span><span class="g-year"> (1995)</span><span class="g-plays" title="Plays">14× plays</span><span class="g-pub" title="Publisher on BGG">via KOSMOS</span><span class="g-meta"> · BGG 6.90</span></li>
+<li class="game-chip"><span class="g-name">Imhotep</span><span class="g-year"> (2016)</span><span class="g-plays" title="Plays">6× plays</span><span class="g-pub" title="Publisher on BGG">via KOSMOS</span><span class="g-meta"> · BGG 6.90</span></li>
+<li class="game-chip"><span class="g-name">Targi</span><span class="g-year"> (2012)</span><span class="g-plays" title="Plays">2× plays</span><span class="g-pub" title="Publisher on BGG">via KOSMOS</span><span class="g-meta"> · BGG 7.40</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="portal-games" data-name="portal games" data-hall="hall two" data-cats="board games card games games publisher" data-score="32" data-games="5" data-plays="27" data-ontopic="1" data-haystack="portal games board games card games games publisher visit us to to learn about our newest releases and acclaimed classics. hall two 2-693 king of tokyo portal games gaia project portal games spirit island portal games ankh: gods of egypt portal games spirit island: branch &amp; claw portal games">
+      <header class="ex-head">
+        <div class="ex-rank">#8</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/portal-games/" target="_blank" rel="noopener">Portal Games</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-693</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>5</strong><span>games</span></div>
+          <div class="stat"><strong>27</strong><span>plays</span></div>
+          <div class="stat"><strong>32</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Card Games · Games Publisher</div>
+      <p class="ex-desc">Visit us to to learn about our newest releases and acclaimed classics.</p>
+      <details class="ex-games">
+        <summary>5 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">King of Tokyo</span><span class="g-year"> (2011)</span><span class="g-plays" title="Plays">14× plays</span><span class="g-pub" title="Publisher on BGG">via Portal Games</span><span class="g-meta"> · BGG 7.01</span></li>
+<li class="game-chip"><span class="g-name">Gaia Project</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">7× plays</span><span class="g-pub" title="Publisher on BGG">via Portal Games</span><span class="g-meta"> · BGG 8.09</span></li>
+<li class="game-chip"><span class="g-name">Spirit Island</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">4× plays</span><span class="g-pub" title="Publisher on BGG">via Portal Games</span><span class="g-meta"> · BGG 8.14</span></li>
+<li class="game-chip"><span class="g-name">Ankh: Gods of Egypt</span><span class="g-year"> (2021)</span><span class="g-plays" title="Plays">2× plays</span><span class="g-pub" title="Publisher on BGG">via Portal Games</span><span class="g-meta"> · BGG 7.27</span></li>
+<li class="game-chip"><span class="g-name">Spirit Island: Branch &amp; Claw</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Portal Games</span><span class="g-meta"> · BGG 8.12</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="tycoon-games" data-name="tycoon games" data-hall="hall three" data-cats="board games" data-score="29" data-games="2" data-plays="28" data-ontopic="1" data-haystack="tycoon games board games  hall three 3-402 everdell tycoon games ankh: gods of egypt tycoon games">
+      <header class="ex-head">
+        <div class="ex-rank">#9</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/tycoon-games/" target="_blank" rel="noopener">Tycoon Games</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Three</span>
+            <span class="stand">3-402</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>2</strong><span>games</span></div>
+          <div class="stat"><strong>28</strong><span>plays</span></div>
+          <div class="stat"><strong>29</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games</div>
+      
+      <details class="ex-games">
+        <summary>2 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Everdell</span><span class="g-year"> (2018)</span><span class="g-plays" title="Plays">26× plays</span><span class="g-pub" title="Publisher on BGG">via Tycoon Games</span><span class="g-meta"> · BGG 7.81</span></li>
+<li class="game-chip"><span class="g-name">Ankh: Gods of Egypt</span><span class="g-year"> (2021)</span><span class="g-plays" title="Plays">2× plays</span><span class="g-pub" title="Publisher on BGG">via Tycoon Games</span><span class="g-meta"> · BGG 7.27</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="hachette-boardgames-uk" data-name="hachette boardgames uk" data-hall="hall two" data-cats="board games family games card games" data-score="26" data-games="4" data-plays="22" data-ontopic="1" data-haystack="hachette boardgames uk board games family games card games join us to try and buy our newest games, as well as to preview exciting upcoming releases! hall two 2-416 akropolis hachette boardgames uk deep sea adventure hachette boardgames uk northgard: uncharted lands hachette boardgames usa iki hachette boardgames uk">
+      <header class="ex-head">
+        <div class="ex-rank">#10</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/hachette-boardgames-uk/" target="_blank" rel="noopener">Hachette Boardgames UK</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-416</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>4</strong><span>games</span></div>
+          <div class="stat"><strong>22</strong><span>plays</span></div>
+          <div class="stat"><strong>26</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Family Games · Card Games</div>
+      <p class="ex-desc">Join us to try and buy our newest games, as well as to preview exciting upcoming releases!</p>
+      <details class="ex-games">
+        <summary>4 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Akropolis</span><span class="g-year"> (2022)</span><span class="g-plays" title="Plays">15× plays</span><span class="g-pub" title="Publisher on BGG">via Hachette Boardgames UK</span><span class="g-meta"> · BGG 7.05</span></li>
+<li class="game-chip"><span class="g-name">Deep Sea Adventure</span><span class="g-year"> (2014)</span><span class="g-plays" title="Plays">4× plays</span><span class="g-pub" title="Publisher on BGG">via Hachette Boardgames UK</span><span class="g-meta"> · BGG 6.69</span></li>
+<li class="game-chip"><span class="g-name">Northgard: Uncharted Lands</span><span class="g-year"> (2022)</span><span class="g-plays" title="Plays">2× plays</span><span class="g-pub" title="Publisher on BGG">via Hachette Boardgames USA</span><span class="g-meta"> · BGG 6.52</span></li>
+<li class="game-chip"><span class="g-name">IKI</span><span class="g-year"> (2015)</span><span class="g-plays" title="Plays">1× plays</span><span class="g-pub" title="Publisher on BGG">via Hachette Boardgames UK</span><span class="g-meta"> · BGG 7.03</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="coiledspring-games-2" data-name="coiledspring games" data-hall="hall two" data-cats="board games family games" data-score="23" data-games="1" data-plays="22" data-ontopic="1" data-haystack="coiledspring games board games family games coiledspring games is the exclusive distributor of some of the best games you can find. hall two 2-660 kingdomino coiledspring games">
+      <header class="ex-head">
+        <div class="ex-rank">#11</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/coiledspring-games-2/" target="_blank" rel="noopener">Coiledspring Games</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-660</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>1</strong><span>game</span></div>
+          <div class="stat"><strong>22</strong><span>plays</span></div>
+          <div class="stat"><strong>23</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Family Games</div>
+      <p class="ex-desc">Coiledspring Games is the exclusive distributor of some of the best games you can find.</p>
+      <details class="ex-games">
+        <summary>1 matching game in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Kingdomino</span><span class="g-year"> (2016)</span><span class="g-plays" title="Plays">22× plays</span><span class="g-pub" title="Publisher on BGG">via Coiledspring Games</span><span class="g-meta"> · BGG 7.17</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="engames" data-name="engames" data-hall="hall two" data-cats="board games card games" data-score="21" data-games="2" data-plays="19" data-ontopic="1" data-haystack="engames board games card games small publisher in japan hall two 2-327 akropolis engames spirit island engames">
+      <header class="ex-head">
+        <div class="ex-rank">#12</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/engames/" target="_blank" rel="noopener">Engames</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-327</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>2</strong><span>games</span></div>
+          <div class="stat"><strong>19</strong><span>plays</span></div>
+          <div class="stat"><strong>21</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Card Games</div>
+      <p class="ex-desc">Small publisher in Japan</p>
+      <details class="ex-games">
+        <summary>2 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Akropolis</span><span class="g-year"> (2022)</span><span class="g-plays" title="Plays">15× plays</span><span class="g-pub" title="Publisher on BGG">via Engames</span><span class="g-meta"> · BGG 7.05</span></li>
+<li class="game-chip"><span class="g-name">Spirit Island</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">4× plays</span><span class="g-pub" title="Publisher on BGG">via Engames</span><span class="g-meta"> · BGG 8.14</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="gameland" data-name="gameland" data-hall="hall two" data-cats="board games games accessories manufacturing services" data-score="19" data-games="1" data-plays="18" data-ontopic="1" data-haystack="gameland board games games accessories manufacturing services gameland is a chinese board game publisher&amp;manufacturer. hall two 2-479 lost cities gameland 游戏大陆">
+      <header class="ex-head">
+        <div class="ex-rank">#13</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/gameland/" target="_blank" rel="noopener">Gameland</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-479</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>1</strong><span>game</span></div>
+          <div class="stat"><strong>18</strong><span>plays</span></div>
+          <div class="stat"><strong>19</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Games Accessories · Manufacturing Services</div>
+      <p class="ex-desc">Gameland is a Chinese board game publisher&amp;manufacturer.</p>
+      <details class="ex-games">
+        <summary>1 matching game in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Lost Cities</span><span class="g-year"> (1999)</span><span class="g-plays" title="Plays">18× plays</span><span class="g-pub" title="Publisher on BGG">via Gameland 游戏大陆</span><span class="g-meta"> · BGG 7.15</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="ravensburger-ltd" data-name="ravensburger ltd" data-hall="hall two" data-cats="board games family games card games" data-score="17" data-games="3" data-plays="14" data-ontopic="1" data-haystack="ravensburger ltd board games family games card games discover our new boardgames and disney lorcana tcg on stand 736 in hall 2! hall two 2-736 calico ravensburger ag carpe diem ravensburger ag disney villainous: the worst takes it all ravensburger ag">
+      <header class="ex-head">
+        <div class="ex-rank">#14</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/ravensburger-ltd/" target="_blank" rel="noopener">Ravensburger Ltd</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-736</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>3</strong><span>games</span></div>
+          <div class="stat"><strong>14</strong><span>plays</span></div>
+          <div class="stat"><strong>17</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Family Games · Card Games</div>
+      <p class="ex-desc">Discover our new boardgames and Disney Lorcana TCG on Stand 736 in Hall 2!</p>
+      <details class="ex-games">
+        <summary>3 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Calico</span><span class="g-year"> (2020)</span><span class="g-plays" title="Plays">6× plays</span><span class="g-pub" title="Publisher on BGG">via Ravensburger AG</span><span class="g-meta"> · BGG 7.25</span></li>
+<li class="game-chip"><span class="g-name">Carpe Diem</span><span class="g-year"> (2018)</span><span class="g-plays" title="Plays">4× plays</span><span class="g-pub" title="Publisher on BGG">via Ravensburger AG</span><span class="g-meta"> · BGG 7.05</span></li>
+<li class="game-chip"><span class="g-name">Disney Villainous: The Worst Takes it All</span><span class="g-year"> (2018)</span><span class="g-plays" title="Plays">4× plays</span><span class="g-pub" title="Publisher on BGG">via Ravensburger AG</span><span class="g-meta"> · BGG 6.68</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="catan-studios" data-name="catan studio" data-hall="hall three" data-cats="board games card games games publisher" data-score="15" data-games="1" data-plays="14" data-ontopic="1" data-haystack="catan studio board games card games games publisher come say hello and try the new games catan – on the road and catan – zip! hall three 3-1002 catan catan studio">
+      <header class="ex-head">
+        <div class="ex-rank">#15</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/catan-studios/" target="_blank" rel="noopener">Catan Studio</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Three</span>
+            <span class="stand">3-1002</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>1</strong><span>game</span></div>
+          <div class="stat"><strong>14</strong><span>plays</span></div>
+          <div class="stat"><strong>15</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Card Games · Games Publisher</div>
+      <p class="ex-desc">Come say hello and try the new games CATAN – On the Road and CATAN – Zip!</p>
+      <details class="ex-games">
+        <summary>1 matching game in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Catan</span><span class="g-year"> (1995)</span><span class="g-plays" title="Plays">14× plays</span><span class="g-pub" title="Publisher on BGG">via Catan Studio</span><span class="g-meta"> · BGG 6.90</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="cardboard-alchemy" data-name="cardboard alchemy" data-hall="hall two" data-cats="board games family games games publisher" data-score="12" data-games="1" data-plays="11" data-ontopic="1" data-haystack="cardboard alchemy board games family games games publisher cardboard alchemy is a tabletop game company, focused on high-quality production. hall two 2-593 flamecraft cardboard alchemy">
+      <header class="ex-head">
+        <div class="ex-rank">#16</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/cardboard-alchemy/" target="_blank" rel="noopener">Cardboard Alchemy</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-593</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>1</strong><span>game</span></div>
+          <div class="stat"><strong>11</strong><span>plays</span></div>
+          <div class="stat"><strong>12</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Family Games · Games Publisher</div>
+      <p class="ex-desc">Cardboard Alchemy is a tabletop game company, focused on high-quality production.</p>
+      <details class="ex-games">
+        <summary>1 matching game in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Flamecraft</span><span class="g-year"> (2022)</span><span class="g-plays" title="Plays">11× plays</span><span class="g-pub" title="Publisher on BGG">via Cardboard Alchemy</span><span class="g-meta"> · BGG 7.09</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="capstone-games" data-name="capstone games" data-hall="hall three a" data-cats="board games" data-score="8" data-games="1" data-plays="7" data-ontopic="1" data-haystack="capstone games board games  hall three a 3a-468 gaia project capstone games">
+      <header class="ex-head">
+        <div class="ex-rank">#17</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/capstone-games/" target="_blank" rel="noopener">Capstone Games</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Three A</span>
+            <span class="stand">3A-468</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>1</strong><span>game</span></div>
+          <div class="stat"><strong>7</strong><span>plays</span></div>
+          <div class="stat"><strong>8</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games</div>
+      
+      <details class="ex-games">
+        <summary>1 matching game in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Gaia Project</span><span class="g-year"> (2017)</span><span class="g-plays" title="Plays">7× plays</span><span class="g-pub" title="Publisher on BGG">via Capstone Games</span><span class="g-meta"> · BGG 8.09</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="medusa-games" data-name="medusa games" data-hall="hall two" data-cats="board games family games card games" data-score="8" data-games="1" data-plays="7" data-ontopic="1" data-haystack="medusa games board games family games card games an independant publisher focusing of historical and mythological games. hall two 2-302 tinker tailor medusa games">
+      <header class="ex-head">
+        <div class="ex-rank">#18</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/medusa-games/" target="_blank" rel="noopener">Medusa Games</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-302</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>1</strong><span>game</span></div>
+          <div class="stat"><strong>7</strong><span>plays</span></div>
+          <div class="stat"><strong>8</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Family Games · Card Games</div>
+      <p class="ex-desc">An independant publisher focusing of historical and mythological games.</p>
+      <details class="ex-games">
+        <summary>1 matching game in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Tinker Tailor</span><span class="g-year"> (2015)</span><span class="g-plays" title="Plays">7× plays</span><span class="g-pub" title="Publisher on BGG">via Medusa Games</span><span class="g-meta"> · BGG 5.53</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="the-op-games" data-name="the op games" data-hall="hall two" data-cats="board games card games games publisher" data-score="7" data-games="4" data-plays="3" data-ontopic="1" data-haystack="the op games board games card games games publisher the op is excited to exhibit at ukge! stop by our booth for demos! hall two 2-772 scrabble the op games clue the op games monopoly the op games spot it! the op games">
+      <header class="ex-head">
+        <div class="ex-rank">#19</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/the-op-games/" target="_blank" rel="noopener">The Op Games</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-772</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>4</strong><span>games</span></div>
+          <div class="stat"><strong>3</strong><span>plays</span></div>
+          <div class="stat"><strong>7</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Card Games · Games Publisher</div>
+      <p class="ex-desc">The Op is excited to exhibit at UKGE! Stop by our booth for demos!</p>
+      <details class="ex-games">
+        <summary>4 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Scrabble</span><span class="g-year"> (1948)</span><span class="g-plays" title="Plays">2× plays</span><span class="g-pub" title="Publisher on BGG">via The Op Games</span><span class="g-meta"> · BGG 6.15</span></li>
+<li class="game-chip"><span class="g-name">Clue</span><span class="g-year"> (1949)</span><span class="g-plays" title="Plays">1× plays</span><span class="g-pub" title="Publisher on BGG">via The Op Games</span><span class="g-meta"> · BGG 5.57</span></li>
+<li class="game-chip"><span class="g-name">Monopoly</span><span class="g-year"> (1935)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via The Op Games</span><span class="g-meta"> · BGG 4.29</span></li>
+<li class="game-chip"><span class="g-name">Spot it!</span><span class="g-year"> (2009)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via The Op Games</span><span class="g-meta"> · BGG 6.36</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="inside-up-games-2" data-name="inside up games" data-hall="hall four" data-cats="board games card games games publisher" data-score="6" data-games="1" data-plays="5" data-ontopic="1" data-haystack="inside up games board games card games games publisher earth: animal kingdom, crits &amp; tricks, thieves of eldris, tug or roar... and many more! hall four 4-302 earth inside up games">
+      <header class="ex-head">
+        <div class="ex-rank">#20</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/inside-up-games-2/" target="_blank" rel="noopener">Inside Up Games</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-302</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>1</strong><span>game</span></div>
+          <div class="stat"><strong>5</strong><span>plays</span></div>
+          <div class="stat"><strong>6</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Card Games · Games Publisher</div>
+      <p class="ex-desc">Earth: Animal Kingdom, Crits &amp; Tricks, Thieves of Eldris, Tug or Roar... and many more!</p>
+      <details class="ex-games">
+        <summary>1 matching game in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Earth</span><span class="g-year"> (2023)</span><span class="g-plays" title="Plays">5× plays</span><span class="g-pub" title="Publisher on BGG">via Inside Up Games</span><span class="g-meta"> · BGG 7.36</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="exploding-kitterns" data-name="exploding kittens" data-hall="hall two" data-cats="family games party games" data-score="5" data-games="4" data-plays="1" data-ontopic="1" data-haystack="exploding kittens family games party games x hall two 2-686 exploding kittens exploding kittens exploding kittens: nsfw edition exploding kittens exploding kittens: streaking kittens (english 1.0 edition) exploding kittens throw throw burrito exploding kittens">
+      <header class="ex-head">
+        <div class="ex-rank">#21</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/exploding-kitterns/" target="_blank" rel="noopener">Exploding Kittens</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-686</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>4</strong><span>games</span></div>
+          <div class="stat"><strong>1</strong><span>plays</span></div>
+          <div class="stat"><strong>5</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Family Games · Party Games</div>
+      <p class="ex-desc">X</p>
+      <details class="ex-games">
+        <summary>4 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Exploding Kittens</span><span class="g-year"> (2015)</span><span class="g-plays" title="Plays">1× plays</span><span class="g-pub" title="Publisher on BGG">via Exploding Kittens</span><span class="g-meta"> · BGG 5.89</span></li>
+<li class="game-chip"><span class="g-name">Exploding Kittens: NSFW Edition</span><span class="g-year"> (2015)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Exploding Kittens</span><span class="g-meta"> · BGG 5.96</span></li>
+<li class="game-chip"><span class="g-name">Exploding Kittens: Streaking Kittens (English 1.0 edition)</span><span class="g-year"> (2018)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Exploding Kittens</span><span class="g-meta"> · BGG 6.25</span></li>
+<li class="game-chip"><span class="g-name">Throw Throw Burrito</span><span class="g-year"> (2019)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Exploding Kittens</span><span class="g-meta"> · BGG 5.91</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="oink-games-gmbh" data-name="oink games gmbh" data-hall="hall two" data-cats="board games family games card games" data-score="5" data-games="1" data-plays="4" data-ontopic="1" data-haystack="oink games gmbh board games family games card games oink games hall two 2-336 deep sea adventure oink games">
+      <header class="ex-head">
+        <div class="ex-rank">#22</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/oink-games-gmbh/" target="_blank" rel="noopener">Oink Games GmbH</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-336</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>1</strong><span>game</span></div>
+          <div class="stat"><strong>4</strong><span>plays</span></div>
+          <div class="stat"><strong>5</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Family Games · Card Games</div>
+      <p class="ex-desc">Oink Games</p>
+      <details class="ex-games">
+        <summary>1 matching game in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Deep Sea Adventure</span><span class="g-year"> (2014)</span><span class="g-plays" title="Plays">4× plays</span><span class="g-pub" title="Publisher on BGG">via Oink Games</span><span class="g-meta"> · BGG 6.69</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="gen42-games" data-name="gen42 games" data-hall="hall three" data-cats="board games family games card games" data-score="4" data-games="2" data-plays="2" data-ontopic="1" data-haystack="gen42 games board games family games card games publishers and designers of award winning games. hall three 3-626 hive pocket gen42 games hive: the pillbug gen42 games">
+      <header class="ex-head">
+        <div class="ex-rank">#23</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/gen42-games/" target="_blank" rel="noopener">Gen42 Games</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Three</span>
+            <span class="stand">3-626</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>2</strong><span>games</span></div>
+          <div class="stat"><strong>2</strong><span>plays</span></div>
+          <div class="stat"><strong>4</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Family Games · Card Games</div>
+      <p class="ex-desc">Publishers and designers of award winning games.</p>
+      <details class="ex-games">
+        <summary>2 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Hive Pocket</span><span class="g-year"> (2010)</span><span class="g-plays" title="Plays">2× plays</span><span class="g-pub" title="Publisher on BGG">via Gen42 Games</span><span class="g-meta"> · BGG 7.34</span></li>
+<li class="game-chip"><span class="g-name">Hive: The Pillbug</span><span class="g-year"> (2013)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Gen42 Games</span><span class="g-meta"> · BGG 6.73</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="galt-toys-jumbo-play" data-name="jumbo" data-hall="hall two" data-cats="party games card games board games" data-score="4" data-games="2" data-plays="2" data-ontopic="1" data-haystack="jumbo party games card games board games showcasing hitster, the ultimate music party game &amp; introducing new game match my beat. hall two 2-803 scrabble jumbo twister jumbo">
+      <header class="ex-head">
+        <div class="ex-rank">#24</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/galt-toys-jumbo-play/" target="_blank" rel="noopener">Jumbo</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-803</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>2</strong><span>games</span></div>
+          <div class="stat"><strong>2</strong><span>plays</span></div>
+          <div class="stat"><strong>4</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Party Games · Card Games · Board Games</div>
+      <p class="ex-desc">Showcasing Hitster, the ultimate music party game &amp; introducing NEW game Match My Beat.</p>
+      <details class="ex-games">
+        <summary>2 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Scrabble</span><span class="g-year"> (1948)</span><span class="g-plays" title="Plays">2× plays</span><span class="g-pub" title="Publisher on BGG">via Jumbo</span><span class="g-meta"> · BGG 6.15</span></li>
+<li class="game-chip"><span class="g-name">Twister</span><span class="g-year"> (1966)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Jumbo</span><span class="g-meta"> · BGG 4.79</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="mattel-uk-ltd" data-name="mattel games" data-hall="hall four" data-cats="party games family games card games" data-score="4" data-games="2" data-plays="2" data-ontopic="1" data-haystack="mattel games party games family games card games featuring iconic brands uno and skip-bo - discover, play and buy the range! hall four 4-474 scrabble mattel, inc. uno mattel, inc.">
+      <header class="ex-head">
+        <div class="ex-rank">#25</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/mattel-uk-ltd/" target="_blank" rel="noopener">Mattel Games</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-474</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>2</strong><span>games</span></div>
+          <div class="stat"><strong>2</strong><span>plays</span></div>
+          <div class="stat"><strong>4</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Party Games · Family Games · Card Games</div>
+      <p class="ex-desc">Featuring iconic brands UNO and Skip-Bo - discover, play and buy the range!</p>
+      <details class="ex-games">
+        <summary>2 matching games in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Scrabble</span><span class="g-year"> (1948)</span><span class="g-plays" title="Plays">2× plays</span><span class="g-pub" title="Publisher on BGG">via Mattel, Inc.</span><span class="g-meta"> · BGG 6.15</span></li>
+<li class="game-chip"><span class="g-name">UNO</span><span class="g-year"> (1971)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Mattel, Inc.</span><span class="g-meta"> · BGG 5.35</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="board-game-box" data-name="board game box" data-hall="hall two" data-cats="board games family games games publisher" data-score="3" data-games="1" data-plays="2" data-ontopic="1" data-haystack="board game box board games family games games publisher  hall two 2-302 northgard: uncharted lands board game box">
+      <header class="ex-head">
+        <div class="ex-rank">#26</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/board-game-box/" target="_blank" rel="noopener">Board Game Box</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-302</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>1</strong><span>game</span></div>
+          <div class="stat"><strong>2</strong><span>plays</span></div>
+          <div class="stat"><strong>3</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Family Games · Games Publisher</div>
+      
+      <details class="ex-games">
+        <summary>1 matching game in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Northgard: Uncharted Lands</span><span class="g-year"> (2022)</span><span class="g-plays" title="Plays">2× plays</span><span class="g-pub" title="Publisher on BGG">via Board Game Box</span><span class="g-meta"> · BGG 6.52</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="dont-panic-games" data-name="don’t panic games" data-hall="hall four" data-cats="board games roleplaying games card games" data-score="3" data-games="1" data-plays="2" data-ontopic="1" data-haystack="don’t panic games board games roleplaying games card games immersive storytelling, interactive flip-and-write, strategy and card adventures. hall four 4-840 tesseract don&#x27;t panic games">
+      <header class="ex-head">
+        <div class="ex-rank">#27</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/dont-panic-games/" target="_blank" rel="noopener">Don’t Panic Games</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-840</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>1</strong><span>game</span></div>
+          <div class="stat"><strong>2</strong><span>plays</span></div>
+          <div class="stat"><strong>3</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Roleplaying Games · Card Games</div>
+      <p class="ex-desc">Immersive storytelling, interactive flip-and-write, strategy and card adventures.</p>
+      <details class="ex-games">
+        <summary>1 matching game in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Tesseract</span><span class="g-year"> (2023)</span><span class="g-plays" title="Plays">2× plays</span><span class="g-pub" title="Publisher on BGG">via Don&#x27;t Panic Games</span><span class="g-meta"> · BGG 6.09</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="alley-cat-games" data-name="alley cat games" data-hall="hall three" data-cats="board games family games party games" data-score="1" data-games="1" data-plays="0" data-ontopic="1" data-haystack="alley cat games board games family games party games we have a wide variety of different games; including our popular tin games line! hall three 3-902 kittin alley cat games">
+      <header class="ex-head">
+        <div class="ex-rank">#28</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/alley-cat-games/" target="_blank" rel="noopener">Alley Cat Games</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Three</span>
+            <span class="stand">3-902</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>1</strong><span>game</span></div>
+          <div class="stat"><strong>0</strong><span>plays</span></div>
+          <div class="stat"><strong>1</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Family Games · Party Games</div>
+      <p class="ex-desc">We have a wide variety of different games; including our popular Tin Games Line!</p>
+      <details class="ex-games">
+        <summary>1 matching game in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Kittin</span><span class="g-year"> (2020)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Alley Cat Games</span><span class="g-meta"> · BGG 5.63</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="avalon-hill" data-name="avalon hill" data-hall="hall three" data-cats="board games roleplaying games card games" data-score="1" data-games="1" data-plays="0" data-ontopic="1" data-haystack="avalon hill board games roleplaying games card games gameplay sessions hall three 3-932 risk legacy avalon hill">
+      <header class="ex-head">
+        <div class="ex-rank">#29</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/avalon-hill/" target="_blank" rel="noopener">Avalon Hill</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Three</span>
+            <span class="stand">3-932</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>1</strong><span>game</span></div>
+          <div class="stat"><strong>0</strong><span>plays</span></div>
+          <div class="stat"><strong>1</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Roleplaying Games · Card Games</div>
+      <p class="ex-desc">Gameplay sessions</p>
+      <details class="ex-games">
+        <summary>1 matching game in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Risk Legacy</span><span class="g-year"> (2011)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Avalon Hill</span><span class="g-meta"> · BGG 6.89</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="gamesquest" data-name="gamesquest" data-hall="hall three a" data-cats="services" data-score="1" data-games="1" data-plays="2" data-ontopic="0" data-haystack="gamesquest services logistics and fulfilment specialists. hall three a 3a-102 pet evil gamesquest">
+      <header class="ex-head">
+        <div class="ex-rank">#30</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/gamesquest/" target="_blank" rel="noopener">GamesQuest</a> <span class="off-topic" title="UKGE categories don't include core board-game categories; this booth may be a different arm of the same publisher">tangential booth</span></h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Three A</span>
+            <span class="stand">3A-102</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>1</strong><span>game</span></div>
+          <div class="stat"><strong>2</strong><span>plays</span></div>
+          <div class="stat"><strong>1</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Services</div>
+      <p class="ex-desc">Logistics and fulfilment specialists.</p>
+      <details class="ex-games">
+        <summary>1 matching game in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Pet Evil</span><span class="g-year"> (2020)</span><span class="g-plays" title="Plays">2× plays</span><span class="g-pub" title="Publisher on BGG">via GamesQuest</span><span class="g-meta"> · BGG 5.53</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="gibsons" data-name="gibsons" data-hall="hall two" data-cats="board games family games card games" data-score="1" data-games="1" data-plays="0" data-ontopic="1" data-haystack="gibsons board games family games card games founded in 1919, gibsons brings joy through games and jigsaw puzzles. hall two 2-460 uno gibsons">
+      <header class="ex-head">
+        <div class="ex-rank">#31</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/gibsons/" target="_blank" rel="noopener">Gibsons</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-460</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>1</strong><span>game</span></div>
+          <div class="stat"><strong>0</strong><span>plays</span></div>
+          <div class="stat"><strong>1</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Board Games · Family Games · Card Games</div>
+      <p class="ex-desc">Founded in 1919, Gibsons brings joy through Games and Jigsaw puzzles.</p>
+      <details class="ex-games">
+        <summary>1 matching game in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">UNO</span><span class="g-year"> (1971)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Gibsons</span><span class="g-meta"> · BGG 5.35</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="ex-card" data-slug="ginger-fox" data-name="ginger fox" data-hall="hall three a" data-cats="party games family games card games" data-score="1" data-games="1" data-plays="0" data-ontopic="1" data-haystack="ginger fox party games family games card games creating playful, thoughtfully designed games for adults and families to enjoy together. hall three a 3a-155 taskmaster: the board game ginger fox games">
+      <header class="ex-head">
+        <div class="ex-rank">#32</div>
+        <div class="ex-title">
+          <h3><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/ginger-fox/" target="_blank" rel="noopener">Ginger Fox</a> </h3>
+          <div class="ex-loc">
+            <span class="hall">Hall Three A</span>
+            <span class="stand">3A-155</span>
+          </div>
+        </div>
+        <div class="ex-stats">
+          <div class="stat"><strong>1</strong><span>game</span></div>
+          <div class="stat"><strong>0</strong><span>plays</span></div>
+          <div class="stat"><strong>1</strong><span>score</span></div>
+        </div>
+      </header>
+      <div class="ex-cats">Party Games · Family Games · Card Games</div>
+      <p class="ex-desc">Creating playful, thoughtfully designed games for adults and families to enjoy together.</p>
+      <details class="ex-games">
+        <summary>1 matching game in your collection</summary>
+        <ul class="game-list"><li class="game-chip"><span class="g-name">Taskmaster: The Board Game</span><span class="g-year"> (2018)</span><span class="g-plays" title="Plays">0× plays</span><span class="g-pub" title="Publisher on BGG">via Ginger Fox Games</span><span class="g-meta"> · BGG 5.59</span></li></ul>
+      </details>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+  </div>
+</section>
+
+<section>
+  <h2>Discovery — publishers worth a look <span class="count">— 31 candidates, top 40 shown</span></h2>
+  <p class="lede">
+    Publishers at the expo who don't already publish anything you own, but make games that share categories and mechanics
+    with your most-played titles. Scored by how many of your top tags appear in their description and categories.
+  </p>
+  <div class="controls">
+    <label>Filter <input id="dx-filter" placeholder="exhibitor, hall…"></label>
+    <label>Hall
+      <select id="dx-hall">
+        <option value="">all</option>
+        <option>Hall One</option>
+        <option>Hall Two</option>
+        <option>Hall Three</option>
+        <option>Hall Four</option>
+        <option>Hall Five</option>
+        <option>Toy Fair</option>
+      </select>
+    </label>
+  </div>
+  <div class="dx-grid" id="dx-grid">
+    
+    <article class="dx-card" data-slug="orcwoodgames" data-name="orcwood games" data-hall="hall four" data-score="3" data-haystack="orcwood games board games family games card games welcome to the city of orcwood, the perfect place to pick up chaotic fantasy games. hall four 4-274 card city fantasy">
+      <header class="dx-head">
+        <div class="dx-rank">#1</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/orcwoodgames/" target="_blank" rel="noopener">Orcwood Games</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-274</span>
+          </div>
+        </div>
+        <div class="dx-score">3 shared tags</div>
+      </header>
+      <div class="dx-cats">Board Games · Family Games · Card Games</div>
+      <p class="dx-desc">Welcome to the City of Orcwood, the perfect place to pick up chaotic fantasy games.</p>
+      <div class="dx-kw">matched on: card, city, fantasy</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="the-dice-dungeon" data-name="the dice dungeon" data-hall="hall three a" data-score="3" data-haystack="the dice dungeon roleplaying games games accessories card games the dice dungeon | the uk&#x27;s dnd dice set specialist hall three a 3a-133 card dice set">
+      <header class="dx-head">
+        <div class="dx-rank">#2</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/the-dice-dungeon/" target="_blank" rel="noopener">The Dice Dungeon</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Three A</span>
+            <span class="stand">3A-133</span>
+          </div>
+        </div>
+        <div class="dx-score">3 shared tags</div>
+      </header>
+      <div class="dx-cats">Roleplaying Games · Games Accessories · Card Games</div>
+      <p class="dx-desc">The Dice Dungeon | The UK&#x27;s DND Dice Set Specialist</p>
+      <div class="dx-kw">matched on: card, dice, set</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="treesap-games" data-name="treesap games" data-hall="hall four" data-score="3" data-haystack="treesap games board games family games card games escape the rat race is a fast and furious set building card game hall four 4-314 building card set">
+      <header class="dx-head">
+        <div class="dx-rank">#3</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/treesap-games/" target="_blank" rel="noopener">TreeSap Games</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-314</span>
+          </div>
+        </div>
+        <div class="dx-score">3 shared tags</div>
+      </header>
+      <div class="dx-cats">Board Games · Family Games · Card Games</div>
+      <p class="dx-desc">Escape The Rat Race is a fast and furious set building card game</p>
+      <div class="dx-kw">matched on: building, card, set</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="7th-city-collectables" data-name="7th city collectables" data-hall="hall four" data-score="2" data-haystack="7th city collectables card games games retailer sci-fi/fantasy miniatures your flgs in nottingham specialising in tabletop games and tcgs! hall four 4-440 card fantasy">
+      <header class="dx-head">
+        <div class="dx-rank">#4</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/7th-city-collectables/" target="_blank" rel="noopener">7th City Collectables</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-440</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Card Games · Games Retailer · Sci-Fi/Fantasy Miniatures</div>
+      <p class="dx-desc">Your FLGS in Nottingham specialising in Tabletop Games and TCGs!</p>
+      <div class="dx-kw">matched on: card, fantasy</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="akingnamedcory" data-name="akingnamedcory" data-hall="hall four" data-score="2" data-haystack="akingnamedcory artist/author card games games accessories custom dice and gaming gear for tcg &amp; ttrpg fans hall four 4-668 card dice">
+      <header class="dx-head">
+        <div class="dx-rank">#5</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/akingnamedcory/" target="_blank" rel="noopener">AKingNamedCory</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-668</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Artist/Author · Card Games · Games Accessories</div>
+      <p class="dx-desc">Custom dice and gaming gear for TCG &amp; TTRPG fans</p>
+      <div class="dx-kw">matched on: card, dice</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="awa-game-design-war-on-terra" data-name="awa game design - war on terra" data-hall="hall four" data-score="2" data-haystack="awa game design - war on terra board games sci-fi/fantasy miniatures sci-fi tabletop wargame set in the near future. hall four 4-787 fantasy set">
+      <header class="dx-head">
+        <div class="dx-rank">#6</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/awa-game-design-war-on-terra/" target="_blank" rel="noopener">AWA Game Design - War On Terra</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-787</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Board Games · Sci-Fi/Fantasy Miniatures</div>
+      <p class="dx-desc">Sci-Fi Tabletop Wargame set in the near future.</p>
+      <div class="dx-kw">matched on: fantasy, set</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="azgard-collectibles" data-name="azgard collectibles" data-hall="hall two" data-score="2" data-haystack="azgard collectibles card games specialists in all things trading card game related,
+add some gold to you collection!! hall two 2-t85 card collection">
+      <header class="dx-head">
+        <div class="dx-rank">#7</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/azgard-collectibles/" target="_blank" rel="noopener">Azgard Collectibles</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-T85</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Card Games</div>
+      <p class="dx-desc">Specialists in all things Trading Card Game Related,
+Add some gold to you collection!!</p>
+      <div class="dx-kw">matched on: card, collection</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="ballad-of-the-fae" data-name="ballad of the fae" data-hall="hall four" data-score="2" data-haystack="ballad of the fae artist/author roleplaying games card games ballad of the fae is a small independent publisher devoted to fantasy art and ttrpg. hall four 4-158 card fantasy">
+      <header class="dx-head">
+        <div class="dx-rank">#8</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/ballad-of-the-fae/" target="_blank" rel="noopener">Ballad of the Fae</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-158</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Artist/Author · Roleplaying Games · Card Games</div>
+      <p class="dx-desc">Ballad of the Fae is a small independent publisher devoted to fantasy art and TTRPG.</p>
+      <div class="dx-kw">matched on: card, fantasy</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="boardgamesolutions" data-name="boardgamesolutions" data-hall="hall three a" data-score="2" data-haystack="boardgamesolutions board games card games games accessories handmade in the uk gifts and accessories including dice bags, dice trays, card holders hall three a 3a-t46 card dice">
+      <header class="dx-head">
+        <div class="dx-rank">#9</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/boardgamesolutions/" target="_blank" rel="noopener">BoardGameSolutions</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Three A</span>
+            <span class="stand">3A-T46</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Board Games · Card Games · Games Accessories</div>
+      <p class="dx-desc">Handmade in the UK gifts and accessories including dice bags, dice trays, card holders</p>
+      <div class="dx-kw">matched on: card, dice</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="crimson-keep" data-name="crimson keep" data-hall="hall four" data-score="2" data-haystack="crimson keep board games card games build a keep, summon the dragon &amp; destroy your enemy in this 1-2 player dark fantasy epic. hall four 4-362 card fantasy">
+      <header class="dx-head">
+        <div class="dx-rank">#10</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/crimson-keep/" target="_blank" rel="noopener">Crimson Keep</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-362</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Board Games · Card Games</div>
+      <p class="dx-desc">Build a Keep, Summon the Dragon &amp; Destroy your Enemy in this 1-2 player dark fantasy epic.</p>
+      <div class="dx-kw">matched on: card, fantasy</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="crooked-dice-game-design-studio" data-name="crooked dice game design studio" data-hall="hall two" data-score="2" data-haystack="crooked dice game design studio games accessories sci-fi/fantasy miniatures games publisher crooked dice specialise in 28mm white metal miniatures inspired by pop culture! hall two 2-236 dice fantasy">
+      <header class="dx-head">
+        <div class="dx-rank">#11</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/crooked-dice-game-design-studio/" target="_blank" rel="noopener">Crooked Dice Game Design Studio</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-236</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Games Accessories · Sci-Fi/Fantasy Miniatures · Games Publisher</div>
+      <p class="dx-desc">Crooked Dice specialise in 28mm white metal miniatures inspired by pop culture!</p>
+      <div class="dx-kw">matched on: dice, fantasy</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="devil-fly-games" data-name="devil fly games" data-hall="hall three" data-score="2" data-haystack="devil fly games board games card games games publisher designers of undermined! pairadice city and the expansion, personas en strata hall three 3-814 card city">
+      <header class="dx-head">
+        <div class="dx-rank">#12</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/devil-fly-games/" target="_blank" rel="noopener">Devil Fly Games</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Three</span>
+            <span class="stand">3-814</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Board Games · Card Games · Games Publisher</div>
+      <p class="dx-desc">Designers of Undermined! Pairadice City and the expansion, Personas En Strata</p>
+      <div class="dx-kw">matched on: card, city</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="dranda-games" data-name="dranda games" data-hall="hall two" data-score="2" data-haystack="dranda games board games card games games publisher visit us for the galactic cruise, explorers of navoria, jackpot: set the reel, and more! hall two 2-704 card set">
+      <header class="dx-head">
+        <div class="dx-rank">#13</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/dranda-games/" target="_blank" rel="noopener">Dranda Games</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-704</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Board Games · Card Games · Games Publisher</div>
+      <p class="dx-desc">Visit us for the Galactic Cruise, Explorers of Navoria, Jackpot: Set The Reel, and more!</p>
+      <div class="dx-kw">matched on: card, set</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="exit-23-games" data-name="exit 23 games" data-hall="hall four" data-score="2" data-haystack="exit 23 games card games games accessories sci-fi/fantasy miniatures we specialise in selling only the best hobby supplies. uk home to relicblade &amp; turbo dork hall four 4-434 card fantasy">
+      <header class="dx-head">
+        <div class="dx-rank">#14</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/exit-23-games/" target="_blank" rel="noopener">Exit 23 Games</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-434</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Card Games · Games Accessories · Sci-Fi/Fantasy Miniatures</div>
+      <p class="dx-desc">We specialise in selling only the best hobby supplies. UK Home to Relicblade &amp; Turbo Dork</p>
+      <div class="dx-kw">matched on: card, fantasy</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="fame-fiction" data-name="fame &amp; fiction" data-hall="hall four" data-score="2" data-haystack="fame &amp; fiction board games card games a fast-paced strategy game featuring iconic characters from history, myth, and fiction. hall four 4-t88 card fiction">
+      <header class="dx-head">
+        <div class="dx-rank">#15</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/fame-fiction/" target="_blank" rel="noopener">Fame &amp; Fiction</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-T88</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Board Games · Card Games</div>
+      <p class="dx-desc">A fast-paced strategy game featuring iconic characters from history, myth, and fiction.</p>
+      <div class="dx-kw">matched on: card, fiction</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="fandomonium" data-name="fandomonium" data-hall="hall three" data-score="2" data-haystack="fandomonium board games roleplaying games card games creators on hand made tabletop gaming accessories hall three 3-472 card hand">
+      <header class="dx-head">
+        <div class="dx-rank">#16</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/fandomonium/" target="_blank" rel="noopener">Fandomonium</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Three</span>
+            <span class="stand">3-472</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Board Games · Roleplaying Games · Card Games</div>
+      <p class="dx-desc">Creators on hand made tabletop gaming accessories</p>
+      <div class="dx-kw">matched on: card, hand</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="games-lore-ltd" data-name="games lore ltd" data-hall="hall three" data-score="2" data-haystack="games lore ltd board games card games games retailer board games, card games - we do them all, pre-order for ukge collection come or browse. hall three 3-t60 card collection">
+      <header class="dx-head">
+        <div class="dx-rank">#17</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/games-lore-ltd/" target="_blank" rel="noopener">Games Lore Ltd</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Three</span>
+            <span class="stand">3-T60</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Board Games · Card Games · Games Retailer</div>
+      <p class="dx-desc">Board Games, Card Games - we do them all, pre-order for UKGE collection come or browse.</p>
+      <div class="dx-kw">matched on: card, collection</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="greyhawk-miniatures" data-name="greyhawk miniatures" data-hall="3a-752" data-score="2" data-haystack="greyhawk miniatures artist/author sci-fi/fantasy miniatures games publisher high quality miniatures for painters and gamers alike - animals, busts, paladins and more 3a-752  animals fantasy">
+      <header class="dx-head">
+        <div class="dx-rank">#18</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/greyhawk-miniatures/" target="_blank" rel="noopener">Greyhawk Miniatures</a></h4>
+          <div class="dx-loc">
+            <span class="hall">3A-752</span>
+            <span class="stand"></span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Artist/Author · Sci-Fi/Fantasy Miniatures · Games Publisher</div>
+      <p class="dx-desc">High quality miniatures for painters and gamers alike - animals, busts, paladins and more</p>
+      <div class="dx-kw">matched on: animals, fantasy</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="illoustrations" data-name="illoustrations" data-hall="hall four" data-score="2" data-haystack="illoustrations artist/author board games card games fantasy and animal themed card game and video game art hall four 4-t80 card fantasy">
+      <header class="dx-head">
+        <div class="dx-rank">#19</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/illoustrations/" target="_blank" rel="noopener">illoustrations</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-T80</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Artist/Author · Board Games · Card Games</div>
+      <p class="dx-desc">Fantasy and animal themed card game and video game art</p>
+      <div class="dx-kw">matched on: card, fantasy</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="kit-snow-black-fox-press" data-name="kit snow &amp; black fox press" data-hall="hall three" data-score="2" data-haystack="kit snow &amp; black fox press artist/author clothing/jewellery card games original fantasy art merch (all human made, no ai), apparel, self published books &amp; more! hall three 3-965 card fantasy">
+      <header class="dx-head">
+        <div class="dx-rank">#20</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/kit-snow-black-fox-press/" target="_blank" rel="noopener">Kit Snow &amp; Black Fox Press</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Three</span>
+            <span class="stand">3-965</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Artist/Author · Clothing/Jewellery · Card Games</div>
+      <p class="dx-desc">Original fantasy art merch (all human made, no AI), apparel, self published books &amp; more!</p>
+      <div class="dx-kw">matched on: card, fantasy</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="kraken-corporate-llc" data-name="malediction - loot studios" data-hall="hall three" data-score="2" data-haystack="malediction - loot studios card games sci-fi/fantasy miniatures games publisher malediction is the world’s first 3d-printable miniatures card game (mcg). hall three 3-1129 card fantasy">
+      <header class="dx-head">
+        <div class="dx-rank">#21</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/kraken-corporate-llc/" target="_blank" rel="noopener">Malediction - Loot Studios</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Three</span>
+            <span class="stand">3-1129</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Card Games · Sci-Fi/Fantasy Miniatures · Games Publisher</div>
+      <p class="dx-desc">Malediction is the world’s first 3D-printable Miniatures Card Game (MCG).</p>
+      <div class="dx-kw">matched on: card, fantasy</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="man-o-kent-games" data-name="man o&#x27; kent games" data-hall="hall two" data-score="2" data-haystack="man o&#x27; kent games board games sci-fi/fantasy miniatures games publisher small box, high gameplay card games and highly innovative miniatures games. hall two 2-806 card fantasy">
+      <header class="dx-head">
+        <div class="dx-rank">#22</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/man-o-kent-games/" target="_blank" rel="noopener">Man O&#x27; Kent Games</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-806</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Board Games · Sci-Fi/Fantasy Miniatures · Games Publisher</div>
+      <p class="dx-desc">Small box, high gameplay card games and highly innovative miniatures games.</p>
+      <div class="dx-kw">matched on: card, fantasy</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="midlam-miniatures" data-name="midlam miniatures" data-hall="hall three a" data-score="2" data-haystack="midlam miniatures sci-fi/fantasy miniatures board games card games dungeon crawler stalagbite! and card games such as their new faction card game. hall three a 3a-t46 card fantasy">
+      <header class="dx-head">
+        <div class="dx-rank">#23</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/midlam-miniatures/" target="_blank" rel="noopener">Midlam Miniatures</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Three A</span>
+            <span class="stand">3A-T46</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Sci-Fi/Fantasy Miniatures · Board Games · Card Games</div>
+      <p class="dx-desc">Dungeon Crawler Stalagbite! and card games such as their new FACTION card game.</p>
+      <div class="dx-kw">matched on: card, fantasy</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="omnideck" data-name="omnideck" data-hall="hall four" data-score="2" data-haystack="omnideck card games omnideck is a multi-functional card system that combines cards, dice, and other mechanics. hall four 4-580 card dice">
+      <header class="dx-head">
+        <div class="dx-rank">#24</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/omnideck/" target="_blank" rel="noopener">Omnideck</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-580</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Card Games</div>
+      <p class="dx-desc">Omnideck is a multi-functional card system that combines cards, dice, and other mechanics.</p>
+      <div class="dx-kw">matched on: card, dice</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="the-dice-jail" data-name="the dice jail" data-hall="hall three a" data-score="2" data-haystack="the dice jail board games card games games accessories welcome to the dice jail - visit us for tcg boosters, singles, dice &amp; much more! hall three a 3a-b22 card dice">
+      <header class="dx-head">
+        <div class="dx-rank">#25</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/the-dice-jail/" target="_blank" rel="noopener">The Dice Jail</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Three A</span>
+            <span class="stand">3A-B22</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Board Games · Card Games · Games Accessories</div>
+      <p class="dx-desc">Welcome to The Dice Jail - visit us for TCG boosters, singles, dice &amp; much more!</p>
+      <div class="dx-kw">matched on: card, dice</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="the-rogues-retreat" data-name="the rogues retreat" data-hall="hall three a" data-score="2" data-haystack="the rogues retreat roleplaying games card games games accessories calling players &amp; dms alike: dice, ttrpg accessories, independent artists prints await you hall three a 3a-b16 card dice">
+      <header class="dx-head">
+        <div class="dx-rank">#26</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/the-rogues-retreat/" target="_blank" rel="noopener">The Rogues Retreat</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Three A</span>
+            <span class="stand">3A-B16</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Roleplaying Games · Card Games · Games Accessories</div>
+      <p class="dx-desc">Calling players &amp; DMs alike: dice, TTRPG accessories, independent artists prints await you</p>
+      <div class="dx-kw">matched on: card, dice</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="tritex-games-ltd" data-name="tritex games ltd" data-hall="hall two" data-score="2" data-haystack="tritex games ltd board games card games games retailer tritex games, retailer of board games, tcg, dice, tokens, meeples &amp; collectable miniatures hall two 2-846 card dice">
+      <header class="dx-head">
+        <div class="dx-rank">#27</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/tritex-games-ltd/" target="_blank" rel="noopener">Tritex Games Ltd</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Two</span>
+            <span class="stand">2-846</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Board Games · Card Games · Games Retailer</div>
+      <p class="dx-desc">Tritex Games, retailer of board games, TCG, dice, tokens, meeples &amp; collectable miniatures</p>
+      <div class="dx-kw">matched on: card, dice</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="uk-battletech" data-name="uk battletech" data-hall="hall three" data-score="2" data-haystack="uk battletech artist/author sci-fi/fantasy miniatures games publisher the battletech uk community is a collection of fan groups and game creatives. hall three 3-150 collection fantasy">
+      <header class="dx-head">
+        <div class="dx-rank">#28</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/uk-battletech/" target="_blank" rel="noopener">UK BattleTech</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Three</span>
+            <span class="stand">3-150</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Artist/Author · Sci-Fi/Fantasy Miniatures · Games Publisher</div>
+      <p class="dx-desc">The BattleTech UK Community is a collection of fan groups and game creatives.</p>
+      <div class="dx-kw">matched on: collection, fantasy</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="chaos-theory-studios" data-name="wanted: showdown" data-hall="hall three" data-score="2" data-haystack="wanted: showdown board games sci-fi/fantasy miniatures a fast-paced tabletop skirmish game set in the lawless wild west hall three 3-160 fantasy set">
+      <header class="dx-head">
+        <div class="dx-rank">#29</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/chaos-theory-studios/" target="_blank" rel="noopener">Wanted: Showdown</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Three</span>
+            <span class="stand">3-160</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Board Games · Sci-Fi/Fantasy Miniatures</div>
+      <p class="dx-desc">A fast-paced tabletop skirmish game set in the lawless Wild West</p>
+      <div class="dx-kw">matched on: fantasy, set</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="steamforged-games-ltd" data-name="warmachine" data-hall="hall four" data-score="2" data-haystack="warmachine games retailer sci-fi/fantasy miniatures games publisher welcome to the battlefields of warmachine—an award-winning miniature wargame set in the fa hall four 4-413 fantasy set">
+      <header class="dx-head">
+        <div class="dx-rank">#30</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/steamforged-games-ltd/" target="_blank" rel="noopener">Warmachine</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-413</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Games Retailer · Sci-Fi/Fantasy Miniatures · Games Publisher</div>
+      <p class="dx-desc">Welcome to the battlefields of Warmachine—an award-winning miniature wargame set in the fa</p>
+      <div class="dx-kw">matched on: fantasy, set</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+
+    <article class="dx-card" data-slug="wotan-games-ltd" data-name="wotan games ltd" data-hall="hall four" data-score="2" data-haystack="wotan games ltd board games card games board and card games from mythical to economic armageddons hall four 4-301 card economic">
+      <header class="dx-head">
+        <div class="dx-rank">#31</div>
+        <div class="dx-title">
+          <h4><a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/wotan-games-ltd/" target="_blank" rel="noopener">Wotan Games Ltd</a></h4>
+          <div class="dx-loc">
+            <span class="hall">Hall Four</span>
+            <span class="stand">4-301</span>
+          </div>
+        </div>
+        <div class="dx-score">2 shared tags</div>
+      </header>
+      <div class="dx-cats">Board Games · Card Games</div>
+      <p class="dx-desc">Board and card games from Mythical to Economic Armageddons</p>
+      <div class="dx-kw">matched on: card, economic</div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+    </article>
+    
+  </div>
+</section>
+
+<section>
+  <h2>Your taste signal <span class="count">— what the discovery engine is matching against</span></h2>
+  <p class="lede">Top categories and mechanics across your collection, weighted by plays.</p>
+  <div class="tag-cloud">
+    <strong style="color:var(--accent)">Categories:</strong> <span class="tag">Card Game <span class="tag-w">256</span></span> · <span class="tag">Animals <span class="tag-w">163</span></span> · <span class="tag">Fantasy <span class="tag-w">160</span></span> · <span class="tag">Territory Building <span class="tag-w">140</span></span> · <span class="tag">Economic <span class="tag-w">120</span></span> · <span class="tag">Medieval <span class="tag-w">110</span></span> · <span class="tag">Science Fiction <span class="tag-w">103</span></span> · <span class="tag">City Building <span class="tag-w">87</span></span>
+  </div>
+  <div class="tag-cloud" style="margin-top:10px">
+    <strong style="color:var(--accent)">Mechanics:</strong> <span class="tag">Hand Management <span class="tag-w">273</span></span> · <span class="tag">End Game Bonuses <span class="tag-w">250</span></span> · <span class="tag">Open Drafting <span class="tag-w">243</span></span> · <span class="tag">Contracts <span class="tag-w">158</span></span> · <span class="tag">Pattern Building <span class="tag-w">147</span></span> · <span class="tag">Dice Rolling <span class="tag-w">135</span></span> · <span class="tag">Income <span class="tag-w">133</span></span> · <span class="tag">Set Collection <span class="tag-w">129</span></span>
+  </div>
+</section>
+
+<footer>
+  Generated locally · Data from BoardGameGeek (collection &amp; publisher info) and ukgamesexpo.co.uk (exhibitor list).
+  Names match using normalised token-set Jaccard with parenthetical region suffixes stripped — there are still false negatives
+  where a UK distributor exhibits under a different name than the BGG-credited publisher.
+</footer>
+
+<div class="toast" id="toast"></div>
+<script>
+(() => {
+  const STORAGE_KEY = 'ukge-companion-state-v1';
+  const state = (() => {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+    catch (e) { return {}; }
+  })();
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    catch (e) { showToast('Storage failed — notes may not persist'); }
+  }
+  function entryFor(slug) {
+    if (!state[slug]) state[slug] = {};
+    return state[slug];
+  }
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._h);
+    showToast._h = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  // Wire per-card visited + notes
+  const allCards = Array.from(document.querySelectorAll('.ex-card, .dx-card'));
+  for (const card of allCards) {
+    const slug = card.dataset.slug;
+    const entry = entryFor(slug);
+    const visitBtn = card.querySelector('[data-action="toggle-visit"]');
+    const notesBtn = card.querySelector('[data-action="toggle-notes"]');
+    const notesArea = card.querySelector('[data-role="notes"]');
+    const notesText = card.querySelector('[data-role="notes-text"]');
+
+    function syncUI() {
+      const visited = !!entry.visited;
+      card.classList.toggle('visited', visited);
+      if (visitBtn) {
+        visitBtn.textContent = visited ? '✓ Visited' : 'Mark as visited';
+        visitBtn.classList.toggle('on', visited);
+      }
+      const hasNotes = !!(entry.notes && entry.notes.trim());
+      if (notesBtn) notesBtn.classList.toggle('has-notes', hasNotes);
+      if (notesText && notesText.value !== (entry.notes || '')) notesText.value = entry.notes || '';
+    }
+    syncUI();
+    visitBtn?.addEventListener('click', () => {
+      entry.visited = !entry.visited;
+      if (entry.visited) entry.visitedAt = new Date().toISOString();
+      else delete entry.visitedAt;
+      save();
+      syncUI();
+      applyFilters();
+    });
+    notesBtn?.addEventListener('click', () => {
+      notesArea.classList.toggle('hidden');
+      if (!notesArea.classList.contains('hidden')) notesText.focus();
+    });
+    let notesDebounce;
+    notesText?.addEventListener('input', () => {
+      clearTimeout(notesDebounce);
+      notesDebounce = setTimeout(() => {
+        entry.notes = notesText.value;
+        save();
+        syncUI();
+      }, 250);
+    });
+  }
+
+  // Search / filter / sort
+  const exGrid = document.getElementById('ex-grid');
+  const dxGrid = document.getElementById('dx-grid');
+  const globalQ = document.getElementById('global-q');
+  const exFilter = document.getElementById('ex-filter');
+  const exHall = document.getElementById('ex-hall');
+  const exSort = document.getElementById('ex-sort');
+  const dxFilter = document.getElementById('dx-filter');
+  const dxHall = document.getElementById('dx-hall');
+  const visitedOnlyBtn = document.getElementById('visited-only');
+  const unvisitedOnlyBtn = document.getElementById('unvisited-only');
+  let visitedFilter = ''; // '', 'visited', 'unvisited'
+
+  function applyFilters() {
+    const q = (globalQ?.value || '').toLowerCase().trim();
+    const exQ = (exFilter?.value || '').toLowerCase().trim();
+    const dxQ = (dxFilter?.value || '').toLowerCase().trim();
+    const exH = (exHall?.value || '').toLowerCase().trim();
+    const dxH = (dxHall?.value || '').toLowerCase().trim();
+    for (const c of allCards) {
+      const isEx = c.classList.contains('ex-card');
+      const hay = c.dataset.haystack || '';
+      const hall = c.dataset.hall || '';
+      const sectionQ = isEx ? exQ : dxQ;
+      const sectionH = isEx ? exH : dxH;
+      const visited = c.classList.contains('visited');
+      const passesGlobal = !q || hay.includes(q);
+      const passesSection = !sectionQ || hay.includes(sectionQ);
+      const passesHall = !sectionH || hall === sectionH;
+      const passesVisit =
+        !visitedFilter ||
+        (visitedFilter === 'visited' && visited) ||
+        (visitedFilter === 'unvisited' && !visited);
+      c.classList.toggle('hidden', !(passesGlobal && passesSection && passesHall && passesVisit));
+    }
+    // Sort (only ex grid is sortable)
+    if (exSort) {
+      const key = exSort.value;
+      const exCards = allCards.filter(c => c.classList.contains('ex-card'));
+      const sorted = [...exCards].sort((a, b) => {
+        if (key === 'name') return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+        if (key === 'hall') {
+          return (a.dataset.hall || '').localeCompare(b.dataset.hall || '') ||
+                 (a.dataset.name || '').localeCompare(b.dataset.name || '');
+        }
+        const av = parseFloat(a.dataset[key] || '0');
+        const bv = parseFloat(b.dataset[key] || '0');
+        return bv - av;
+      });
+      for (const c of sorted) exGrid.appendChild(c);
+    }
+  }
+  [globalQ, exFilter, dxFilter].forEach(el => el?.addEventListener('input', applyFilters));
+  [exHall, dxHall, exSort].forEach(el => el?.addEventListener('change', applyFilters));
+  visitedOnlyBtn?.addEventListener('click', () => {
+    visitedFilter = visitedFilter === 'visited' ? '' : 'visited';
+    visitedOnlyBtn.classList.toggle('active', visitedFilter === 'visited');
+    unvisitedOnlyBtn.classList.remove('active');
+    applyFilters();
+  });
+  unvisitedOnlyBtn?.addEventListener('click', () => {
+    visitedFilter = visitedFilter === 'unvisited' ? '' : 'unvisited';
+    unvisitedOnlyBtn.classList.toggle('active', visitedFilter === 'unvisited');
+    visitedOnlyBtn.classList.remove('active');
+    applyFilters();
+  });
+
+  // Cmd/Ctrl-K focuses the global search
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      globalQ?.focus();
+      globalQ?.select();
+    } else if (e.key === 'Escape' && document.activeElement === globalQ) {
+      globalQ.value = '';
+      applyFilters();
+    }
+  });
+
+  // Service worker — only attempts when served over http(s).
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
