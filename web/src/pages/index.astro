@@ -9,7 +9,7 @@ import HotCard from '../components/HotCard.astro';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -21,6 +21,20 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   <link rel="icon" type="image/svg+xml" href={`${base}/icon.svg`} />
   <link rel="apple-touch-icon" href={`${base}/icon.svg`} />
   <title>UK Games Expo 2026 Companion · {data.username}</title>
+  <script is:inline>
+    // Apply theme before first paint to avoid a light/dark flash.
+    // Mirrored in src/scripts/theme.ts — keep both in sync.
+    (function () {
+      try {
+        var stored = localStorage.getItem('ukge-companion-theme');
+        var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = stored || (systemDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -37,10 +51,16 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       </div>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" id="install-btn" title="Install as an app"><span class="ico">⬇</span> Install</button>
-      <button class="icon-btn" id="share-btn" title="Generate a shareable link"><span class="ico">↗</span> Share</button>
-      <button class="icon-btn" id="theme-toggle" title="Toggle light/dark"><span class="ico" id="theme-ico">◐</span> <span id="theme-label">Theme</span></button>
-      <button class="icon-btn" id="export-btn" title="Export plan as markdown"><span class="ico">⤓</span> Export</button>
+      <div class="header-menu" id="header-menu">
+        <button class="icon-btn" id="install-btn" title="Install as an app"><span class="ico">⬇</span> Install</button>
+        <button class="icon-btn" id="share-btn" title="Generate a shareable link"><span class="ico">↗</span> Share</button>
+        <button class="icon-btn theme-btn" id="theme-toggle" title="Toggle light/dark">
+          <span class="ico theme-light">☀</span><span class="ico theme-dark">☾</span>
+          <span class="theme-light">Light</span><span class="theme-dark">Dark</span>
+        </button>
+        <button class="icon-btn" id="export-btn" title="Export plan as markdown"><span class="ico">⤓</span> Export</button>
+      </div>
+      <button class="icon-btn header-menu-btn" id="header-menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="header-menu" title="More"><span class="ico">⋮</span></button>
     </div>
   </div>
 </header>
@@ -58,28 +78,34 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <div class="filter-tray" id="filter-tray" data-open="false">
       <div class="pill-row">
         <span class="label">Show:</span>
-        <button class="pill status-pill active" data-status="all">All</button>
-        <button class="pill status-pill" data-status="unvisited">Unvisited</button>
-        <button class="pill status-pill" data-status="visited">Visited</button>
-        <button class="pill status-pill" data-status="revisit">Revisit ★</button>
-        <button class="pill status-pill" data-status="buy">Buy 🛒</button>
-        <button class="pill" id="hide-skipped" type="button">Hide skipped</button>
+        <span class="pills">
+          <button class="pill status-pill active" data-status="all">All</button>
+          <button class="pill status-pill" data-status="unvisited">Unvisited</button>
+          <button class="pill status-pill" data-status="visited">Visited</button>
+          <button class="pill status-pill" data-status="revisit">Revisit ★</button>
+          <button class="pill status-pill" data-status="buy">Buy 🛒</button>
+          <button class="pill" id="hide-skipped" type="button">Show hidden</button>
+        </span>
       </div>
       <div class="pill-row day-row">
         <span class="label">Day:</span>
-        <button class="pill day-pill active" data-day="any">Any</button>
-        <button class="pill day-pill" data-day="fri">Fri</button>
-        <button class="pill day-pill" data-day="sat">Sat</button>
-        <button class="pill day-pill" data-day="sun">Sun</button>
+        <span class="pills">
+          <button class="pill day-pill active" data-day="any">Any</button>
+          <button class="pill day-pill" data-day="fri">Fri</button>
+          <button class="pill day-pill" data-day="sat">Sat</button>
+          <button class="pill day-pill" data-day="sun">Sun</button>
+        </span>
       </div>
       <div class="pill-row day-row">
         <span class="label">Search in:</span>
-        <button class="pill facet-pill" data-facet="all">All</button>
-        <button class="pill facet-pill" data-facet="exhibitor">Exhibitor</button>
-        <button class="pill facet-pill" data-facet="games">Games</button>
-        <button class="pill facet-pill" data-facet="publishers">Publishers</button>
-        <button class="pill facet-pill" data-facet="categories">Categories</button>
-        <button class="pill facet-pill" data-facet="halls">Halls</button>
+        <span class="pills">
+          <button class="pill facet-pill" data-facet="all">All</button>
+          <button class="pill facet-pill" data-facet="exhibitor">Exhibitor</button>
+          <button class="pill facet-pill" data-facet="games">Games</button>
+          <button class="pill facet-pill" data-facet="publishers">Publishers</button>
+          <button class="pill facet-pill" data-facet="categories">Categories</button>
+          <button class="pill facet-pill" data-facet="halls">Halls</button>
+        </span>
       </div>
     </div>
   </div>
@@ -91,6 +117,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       <button class="tab active" data-tab="for-you">For you <span class="badge">{data.stats.matched_exhibitors}</span></button>
       <button class="tab" data-tab="hot">Hot games <span class="badge">{data.stats.hot_count}</span></button>
       <button class="tab" data-tab="route">Route</button>
+      <button class="tab" data-tab="shopping">Shopping <span class="badge hidden">0</span></button>
       <button class="tab" data-tab="discover">Discover <span class="badge">{data.stats.discovery_count}</span></button>
       <button class="tab" data-tab="browse">Browse all <span class="badge">{data.stats.total_exhibitors}</span></button>
       <button class="tab" data-tab="info">Info</button>
@@ -141,6 +168,16 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         <p class="lede">Sorted by stand number — roughly the walking order. Updates as you mark visits.</p>
       </div>
       <div id="route-plan"></div>
+    </section>
+  </div>
+
+  <div class="panel" data-panel="shopping">
+    <section>
+      <div class="section-head">
+        <h2>Shopping list</h2>
+        <p class="lede">Stands you've flagged for buying. Add specific games per stand to keep track on the floor; tick them off as you go.</p>
+      </div>
+      <div id="shopping-list"></div>
     </section>
   </div>
 
@@ -205,6 +242,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         <h2>Opening times</h2>
         <p class="lede">When each venue is open. Trade Hall closes earliest; gaming halls + library run later.</p>
       </div>
+      <div class="hours-table-wrap">
       <table class="hours-table">
         <thead>
           <tr>
@@ -221,6 +259,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
           <tr><th scope="row">Board Game Library <span class="venue-sub">Hilton</span></th><td>18:00 – 22:00</td><td>18:00 – 22:00</td><td>—</td></tr>
         </tbody>
       </table>
+      </div>
       <p class="lede" style="margin-top:10px">
         <a href="https://www.ukgamesexpo.co.uk/plan/before-the-expo/expo-opening-hours/" target="_blank" rel="noopener">Full hours on the UKGE site</a> — including Hilton Hotel gaming, Board Game Library, and Thursday early access for select areas.
       </p>

@@ -7,10 +7,19 @@
 //   'any'      – planned but no specific day. Appears in the route every day.
 //   'fri' | 'sat' | 'sun' – planned for that day.
 export type PlanDay = 'any' | 'fri' | 'sat' | 'sun';
+export interface BuyItem {
+  name: string;
+  purchased?: boolean;
+  addedAt?: string;
+  purchasedAt?: string;
+}
 export interface BoothEntry {
   status?: 'visited' | 'revisit';
+  /** Internally still named `skipped`, but the user-facing label is "hidden". */
   skipped?: boolean;
   buy?: boolean;
+  /** Specific games the user wants to buy from this booth. */
+  buyList?: BuyItem[];
   day?: PlanDay;
   notes?: string;
   visitedAt?: string;
@@ -98,6 +107,35 @@ class StateStore {
 
   setNotes(slug: string, notes: string): void {
     this.update(slug, { notes: notes.trim() ? notes : undefined });
+  }
+
+  addBuyItem(slug: string, name: string): void {
+    const clean = name.trim();
+    if (!clean) return;
+    const e = this.get(slug);
+    const next = [...(e.buyList || []), { name: clean, addedAt: new Date().toISOString() }];
+    this.update(slug, { buyList: next, buy: true, buyAt: e.buyAt || new Date().toISOString(), skipped: false });
+  }
+
+  togglePurchased(slug: string, idx: number): void {
+    const e = this.get(slug);
+    const list = e.buyList ? [...e.buyList] : [];
+    if (idx < 0 || idx >= list.length) return;
+    const cur = list[idx];
+    const nextPurchased = !cur.purchased;
+    list[idx] = {
+      ...cur,
+      purchased: nextPurchased,
+      purchasedAt: nextPurchased ? new Date().toISOString() : undefined,
+    };
+    this.update(slug, { buyList: list });
+  }
+
+  removeBuyItem(slug: string, idx: number): void {
+    const e = this.get(slug);
+    if (!e.buyList) return;
+    const list = e.buyList.filter((_, i) => i !== idx);
+    this.update(slug, { buyList: list.length ? list : undefined });
   }
 
   replaceAll(payload: Record<string, BoothEntry>): void {

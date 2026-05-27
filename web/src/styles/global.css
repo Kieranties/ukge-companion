@@ -168,6 +168,72 @@ a:hover {
   display: inline-flex;
 }
 
+/* Theme button — both icon + label variants are rendered; CSS hides the
+ * inactive ones based on data-theme. Prevents a "Theme → Light/Dark" flash
+ * (the inline <head> script in index.astro sets data-theme before paint). */
+.theme-btn .theme-dark,
+[data-theme='light'] .theme-btn .theme-dark {
+  display: none;
+}
+[data-theme='dark'] .theme-btn .theme-dark {
+  display: inline;
+}
+[data-theme='dark'] .theme-btn .theme-light {
+  display: none;
+}
+
+/* Header actions: desktop = inline row, mobile = kebab + popover.
+ * .header-menu wraps the action buttons. On wide screens it's a normal flex
+ * row; under 640px it becomes an absolute-positioned popover toggled by
+ * .header-menu-btn (the kebab). */
+.header-actions {
+  position: relative;
+}
+.header-menu {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.header-menu-btn {
+  display: none;
+}
+@media (max-width: 640px) {
+  .site-header h1 {
+    font-size: 20px;
+  }
+  .site-header .sub {
+    font-size: 12px;
+  }
+  .header-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow-hover);
+    padding: 6px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 4px;
+    min-width: 160px;
+    z-index: 50;
+    display: none;
+  }
+  .header-menu.open {
+    display: flex;
+  }
+  .header-menu .icon-btn {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .header-menu-btn {
+    display: inline-flex;
+  }
+}
+
 /* ---------- Sticky bars -------------------------------------------------- */
 /* Search + tabs share a single sticky container so the two bars never get
  * separated by a gap (which would happen if each were independently sticky
@@ -286,18 +352,33 @@ a:hover {
   letter-spacing: 0.06em;
   font-family: var(--font-sans);
 }
-/* Inside the filter tray, give every row's label a uniform width so the
- * pills start at the same x-position across rows (otherwise they slope
- * out and right as the label text gets longer). */
+/* Inside the filter tray, lay each row out as a 2-column grid (label | pills)
+ * so when the pill set wraps onto a second row the wrapped pills stay aligned
+ * under the first pill — not under the label. */
+.filter-tray .pill-row {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  align-items: start;
+  gap: 8px;
+}
 .filter-tray .pill-row .label {
-  flex: 0 0 72px;
+  flex: none;
   text-align: right;
+  padding-top: 8px;
+}
+/* Wrapper around the pills inside a tray row. Sits in the grid's second
+ * column and flex-wraps so pills stay aligned under the first pill. */
+.filter-tray .pill-row .pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
 }
 .day-row {
   margin-top: 6px;
 }
 
-/* Filter tray — collapsed on mobile by default, always visible on desktop.
+/* Filter tray — always collapsed by default; toggled open via the button.
  * Uses max-height transition for a smooth slide without measuring content. */
 .filter-tray {
   overflow: hidden;
@@ -307,17 +388,6 @@ a:hover {
 .filter-tray[data-open='true'] {
   max-height: 500px;
   padding-top: 8px;
-}
-@media (min-width: 760px) {
-  /* Desktop: tray is always open + the toggle button is hidden. */
-  .filter-tray {
-    max-height: none;
-    overflow: visible;
-    padding-top: 8px;
-  }
-  .filter-toggle {
-    display: none;
-  }
 }
 
 /* ---------- Tabs --------------------------------------------------------- */
@@ -614,7 +684,7 @@ body[data-searching='1'] #tab-bar {
   border: 2px solid var(--panel);
 }
 .card.skipped::after {
-  content: 'skipped';
+  content: 'hidden';
   position: absolute;
   top: -10px;
   left: 12px;
@@ -1125,14 +1195,17 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   color: #fff;
   border-color: var(--accent-2);
 }
+/* Booth tools — six-column grid keeps the two primary buttons (plan + visit)
+ * half-width on row 1, and the three secondary buttons (buy + hide + notes)
+ * equal-thirds on row 2. Predictable layout at every card width — no lonely
+ * buttons wrapping awkwardly. Notes & shopping editors span the full width. */
 .booth-tools {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
   gap: 6px;
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px dashed var(--line);
-  align-items: center;
 }
 .booth-btn {
   background: var(--panel-2);
@@ -1144,11 +1217,28 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   font-family: inherit;
   font-size: 13px;
   min-height: 36px;
+  /* Long labels (e.g. "Mark as visited") would otherwise blow out the grid
+   * cell — keep them contained. */
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .plan-btn {
-  flex: 1 1 auto;
-  min-width: 130px;
+  grid-column: span 3;
   font-weight: 600;
+}
+.visit-btn {
+  grid-column: span 3;
+}
+.buy-btn,
+.skip-btn,
+.notes-toggle {
+  grid-column: span 2;
+}
+.notes-area,
+.shopping-editor {
+  grid-column: 1 / -1;
 }
 .plan-btn.on {
   background: var(--accent-2);
@@ -1161,10 +1251,6 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   background: var(--accent-2);
   color: #fff;
   border-color: var(--accent-2);
-}
-.visit-btn {
-  flex: 1 1 auto;
-  min-width: 110px;
 }
 .visit-btn.visited {
   background: var(--green);
@@ -1195,7 +1281,6 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   border-color: var(--accent);
 }
 .notes-area {
-  flex-basis: 100%;
   margin-top: 8px;
 }
 .notes-area textarea {
@@ -1209,6 +1294,194 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   font-family: inherit;
   font-size: 14px;
   resize: vertical;
+}
+
+/* ---------- Shopping list ----------------------------------------------- */
+.shop-summary {
+  margin: 0 0 16px;
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+.shop-summary strong {
+  color: var(--ink-strong);
+  font-family: var(--font-sans);
+  font-weight: 700;
+}
+.shop-booth {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.shop-booth-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.shop-booth-head h3 {
+  margin: 0;
+  color: var(--ink-strong);
+  font-size: 17px;
+  flex: 1;
+  min-width: 0;
+}
+.shop-booth-head h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+.shop-booth-head h3 a:hover {
+  color: var(--accent);
+}
+.shop-booth-loc {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  color: var(--ink-dim);
+  font-size: 12px;
+}
+.shop-clear-booth {
+  background: transparent;
+  color: var(--ink-dim);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  cursor: pointer;
+}
+.shop-clear-booth:hover {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+.shop-no-items {
+  margin: 8px 0;
+  color: var(--ink-dim);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* Item list — shared between the inline card editor and the Shopping tab */
+.shop-items,
+.shopping-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 10px;
+}
+.shop-item,
+.shopping-item {
+  display: grid;
+  grid-template-columns: 28px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  margin-bottom: 4px;
+}
+.shop-item.purchased,
+.shopping-item.purchased {
+  opacity: 0.55;
+}
+.shop-item.purchased .shop-item-name,
+.shopping-item.purchased .shopping-name {
+  text-decoration: line-through;
+  text-decoration-color: var(--ink-dim);
+}
+.shopping-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  font-size: 14px;
+  line-height: 1;
+  color: var(--green);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.shop-item.purchased .shopping-check,
+.shopping-item.purchased .shopping-check {
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green);
+}
+.shop-item-name,
+.shopping-name {
+  color: var(--ink);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.shopping-remove {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ink-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.shopping-remove:hover {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+.shopping-empty {
+  color: var(--ink-dim);
+  font-size: 13px;
+  font-style: italic;
+  list-style: none;
+}
+
+/* Inline editor on the booth card. Grid column span is set by the
+ * `.booth-tools` rule above; this just handles spacing. */
+.shopping-editor {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+.shopping-editor.hidden {
+  display: none;
+}
+.shopping-add {
+  display: flex;
+  gap: 6px;
+}
+.shopping-add input[type='text'] {
+  flex: 1;
+  background: var(--panel-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-family: inherit;
+  font-size: 14px;
+}
+.shopping-add input[type='text']:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.shopping-add-btn {
+  background: var(--buy);
+  color: #1a1a2e;
+  border: 1px solid var(--buy);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 /* ---------- Route plan --------------------------------------------------- */
@@ -1525,11 +1798,24 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   margin-left: 6px;
   vertical-align: middle;
 }
+/* On narrow screens the table doesn't fit four columns + four venue names —
+ * give it a horizontal scroll container so it stays readable instead of
+ * forcing every cell to wrap awkwardly. */
+.hours-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
+.hours-table-wrap .hours-table {
+  min-width: 480px;
+}
 @media (max-width: 480px) {
   .hours-table th,
   .hours-table td {
     padding: 8px 10px;
     font-size: 13px;
+    white-space: nowrap;
   }
 }
 .hours-table td {

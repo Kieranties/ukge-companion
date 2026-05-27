@@ -37,12 +37,16 @@ function buildMarkdown(): string {
     }
     lines.push('');
   }
-  const buying = Object.entries(store.data).filter(([, v]) => v.buy);
+  const buying = Object.entries(store.data).filter(([, v]) => v.buy || (v.buyList && v.buyList.length));
   if (buying.length) {
-    lines.push('## 🛒 Buy list');
+    lines.push('## 🛒 Shopping list');
     for (const [slug, v] of buying) {
       const i = lookup(slug);
       lines.push(`- **${i.name}** — ${i.hall} ${i.stand}`);
+      for (const item of v.buyList || []) {
+        const tick = item.purchased ? '[x]' : '[ ]';
+        lines.push(`  - ${tick} ${item.name}`);
+      }
       if (v.notes && v.notes.trim()) for (const ln of v.notes.split(/\r?\n/)) lines.push(`  - ${ln}`);
     }
     lines.push('');
@@ -65,10 +69,10 @@ function buildMarkdown(): string {
     }
     lines.push('');
   }
-  const skipped = Object.entries(store.data).filter(([, v]) => v.skipped);
-  if (skipped.length) {
-    lines.push('## Skipped');
-    for (const [slug, v] of skipped) {
+  const hidden = Object.entries(store.data).filter(([, v]) => v.skipped);
+  if (hidden.length) {
+    lines.push('## Hidden');
+    for (const [slug, v] of hidden) {
       const i = lookup(slug);
       lines.push(`- ${i.name} — ${i.hall} ${i.stand}`);
       if (v.notes && v.notes.trim()) for (const ln of v.notes.split(/\r?\n/)) lines.push(`  - ${ln}`);
@@ -77,7 +81,7 @@ function buildMarkdown(): string {
   }
   // Any stand with notes that didn't appear in a section above — pure-notes
   // entries would otherwise be silently dropped from the export.
-  const seenSlugs = new Set([...visited, ...revisit, ...buying, ...skipped].map(([s]) => s));
+  const seenSlugs = new Set([...visited, ...revisit, ...buying, ...hidden].map(([s]) => s));
   const notesOnly = Object.entries(store.data).filter(
     ([slug, v]) => v.notes && v.notes.trim() && !seenSlugs.has(slug)
   );
@@ -94,7 +98,7 @@ function buildMarkdown(): string {
     visited.length === 0 &&
     revisit.length === 0 &&
     buying.length === 0 &&
-    skipped.length === 0 &&
+    hidden.length === 0 &&
     notesOnly.length === 0
   ) {
     lines.push('*Nothing tracked yet.*');

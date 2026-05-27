@@ -57,13 +57,16 @@ export function wireFilters() {
       applyFilters();
     });
   }
-  const skip = document.getElementById('hide-skipped');
-  skip?.addEventListener('click', () => {
+  // "Show hidden" toggle. Default: hidden booths are excluded. The pill
+  // is active when the user wants to surface them — i.e. `hideSkipped`
+  // is the inverse of the active class.
+  const showHidden = document.getElementById('hide-skipped');
+  showHidden?.addEventListener('click', () => {
     filterState.hideSkipped = !filterState.hideSkipped;
-    skip.classList.toggle('active', filterState.hideSkipped);
+    showHidden.classList.toggle('active', !filterState.hideSkipped);
     applyFilters();
   });
-  skip?.classList.add('active'); // default on
+  // Default: hideSkipped=true, pill NOT active (since "Show hidden" is off).
 
   // Re-apply when state changes so visited/buy toggles update visibility.
   store.subscribe(applyFilters);

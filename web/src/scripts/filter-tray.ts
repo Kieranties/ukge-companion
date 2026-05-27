@@ -19,9 +19,9 @@ function readFilterCount(): number {
   for (const f of facets) {
     if (f.dataset.facet && f.dataset.facet !== 'all') n++;
   }
-  // Hide-skipped is on by default; only counts if user turned it OFF.
-  const hideSkipped = document.getElementById('hide-skipped');
-  if (hideSkipped && !hideSkipped.classList.contains('active')) n++;
+  // "Show hidden" is off by default; counts when the user has turned it on.
+  const showHidden = document.getElementById('hide-skipped');
+  if (showHidden?.classList.contains('active')) n++;
   return n;
 }
 

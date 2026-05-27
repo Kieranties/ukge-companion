@@ -162,8 +162,9 @@ export function buildRoute() {
   const dayFilter = readDayFilter();
   const stops = collectStops().filter((s) => {
     if (s.skipped) {
-      const hideSkipped = document.getElementById('hide-skipped')?.classList.contains('active');
-      if (hideSkipped) return false;
+      // The pill is active when the user wants hidden booths shown.
+      const showingHidden = document.getElementById('hide-skipped')?.classList.contains('active');
+      if (!showingHidden) return false;
     }
     // 'any'-day stands are flexible — they appear under every specific day
     // filter too. A specific day filter only excludes other specific days.

@@ -9,6 +9,25 @@ const PLAN_LABEL: Record<string, string> = {
   sun: '🗓 Sunday',
 };
 
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+}
+
+function renderShoppingList(items: BoothEntry['buyList']): string {
+  if (!items || items.length === 0) {
+    return '<li class="shopping-empty">No specific games listed yet. Add one below ↓</li>';
+  }
+  return items
+    .map(
+      (it, i) => `<li class="shopping-item${it.purchased ? ' purchased' : ''}">
+      <button class="shopping-check" data-action="toggle-purchased" data-idx="${i}" type="button" aria-label="${it.purchased ? 'Mark as not purchased' : 'Mark as purchased'}">${it.purchased ? '✓' : ''}</button>
+      <span class="shopping-name">${escapeHtml(it.name)}</span>
+      <button class="shopping-remove" data-action="remove-buy-item" data-idx="${i}" type="button" aria-label="Remove ${escapeHtml(it.name)}">×</button>
+    </li>`
+    )
+    .join('');
+}
+
 function syncCard(card: HTMLElement, e: BoothEntry) {
   const status = e.status;
   card.classList.toggle('visited', status === 'visited');
@@ -30,12 +49,15 @@ function syncCard(card: HTMLElement, e: BoothEntry) {
   }
   const b = card.querySelector<HTMLButtonElement>('[data-action="toggle-buy"]');
   if (b) {
-    b.textContent = e.buy ? '🛒 Buying' : '🛒 Buy';
+    const n = e.buyList?.length || 0;
+    if (e.buy && n > 0) b.textContent = `🛒 Buying (${n})`;
+    else if (e.buy) b.textContent = '🛒 Buying';
+    else b.textContent = '🛒 Buy';
     b.classList.toggle('on', !!e.buy);
   }
   const s = card.querySelector<HTMLButtonElement>('[data-action="toggle-skip"]');
   if (s) {
-    s.textContent = e.skipped ? 'Skipped' : 'Skip';
+    s.textContent = e.skipped ? 'Hidden' : 'Hide';
     s.classList.toggle('on', !!e.skipped);
   }
   const p = card.querySelector<HTMLButtonElement>('[data-action="cycle-plan"]');
@@ -51,6 +73,15 @@ function syncCard(card: HTMLElement, e: BoothEntry) {
   if (notesBtn) notesBtn.classList.toggle('has-notes', !!(e.notes && e.notes.trim()));
   const notesText = card.querySelector<HTMLTextAreaElement>('[data-role="notes-text"]');
   if (notesText && notesText.value !== (e.notes || '')) notesText.value = e.notes || '';
+
+  // Shopping editor: visible whenever buy flag is on. Inner item list
+  // re-rendered each sync so add/remove/check updates show immediately.
+  const shopping = card.querySelector<HTMLElement>('[data-role="shopping-editor"]');
+  if (shopping) {
+    shopping.classList.toggle('hidden', !e.buy);
+    const itemsEl = shopping.querySelector<HTMLElement>('[data-role="shopping-items"]');
+    if (itemsEl) itemsEl.innerHTML = renderShoppingList(e.buyList);
+  }
 }
 
 export function wireAllCards() {
@@ -81,13 +112,35 @@ export function wireAllCards() {
     else if (action === 'toggle-visit') store.cycleVisit(slug);
     else if (action === 'toggle-buy') store.toggleBuy(slug);
     else if (action === 'toggle-skip') store.toggleSkip(slug);
-    else if (action === 'toggle-notes') {
+    else if (action === 'toggle-purchased') {
+      const idx = parseInt(btn.dataset.idx || '-1', 10);
+      if (idx >= 0) store.togglePurchased(slug, idx);
+    } else if (action === 'remove-buy-item') {
+      const idx = parseInt(btn.dataset.idx || '-1', 10);
+      if (idx >= 0) store.removeBuyItem(slug, idx);
+    } else if (action === 'toggle-notes') {
       const area = card.querySelector<HTMLElement>('[data-role="notes"]');
       area?.classList.toggle('hidden');
       if (area && !area.classList.contains('hidden')) {
         area.querySelector<HTMLTextAreaElement>('[data-role="notes-text"]')?.focus();
       }
     }
+  });
+
+  // Shopping list: add item via the inline form. Submit prevents nav.
+  document.addEventListener('submit', (e) => {
+    const form = e.target as HTMLFormElement;
+    if (!form?.dataset || form.dataset.action !== 'add-buy-item') return;
+    e.preventDefault();
+    const card = form.closest<HTMLElement>('.card[data-slug]');
+    if (!card) return;
+    const input = form.querySelector<HTMLInputElement>('[data-role="shopping-input"]');
+    if (!input) return;
+    const val = input.value.trim();
+    if (!val) return;
+    store.addBuyItem(card.dataset.slug!, val);
+    input.value = '';
+    input.focus();
   });
 
   // Notes input delegation (also works on clones).

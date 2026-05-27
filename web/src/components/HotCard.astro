@@ -39,6 +39,7 @@ const haystack = [
   data-slug={`hot-${g.bggId}`}
   data-name={(g.name || '').toLowerCase()}
   data-categories={catsString.toLowerCase()}
+  data-tag-categories={cats.join('|')}
   data-hall=""
 >
   <a class="hot-thumb" href={bggUrl} target="_blank" rel="noopener" title="View on BoardGameGeek">

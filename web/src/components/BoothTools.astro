@@ -4,14 +4,24 @@
 //   "+ Add to plan" → "Planned · Any day" → "Friday" → "Saturday" → "Sunday"
 // Once it's anything other than the unplanned default, the booth appears in
 // the Route tab.
+//
+// The "Hide" button (internally `skip`) keeps the booth out of the default
+// view; toggle "Show hidden" in the filter tray to surface them again.
 ---
 <div class="booth-tools">
   <button class="booth-btn plan-btn" data-action="cycle-plan" type="button">+ Add to plan</button>
   <button class="booth-btn visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
-  <button class="booth-btn buy-btn" data-action="toggle-buy" type="button" title="Buy something from this stand">🛒 Buy</button>
-  <button class="booth-btn skip-btn" data-action="toggle-skip" type="button">Skip</button>
+  <button class="booth-btn buy-btn" data-action="toggle-buy" type="button" title="Open the shopping list editor">🛒 Buy</button>
+  <button class="booth-btn skip-btn" data-action="toggle-skip" type="button">Hide</button>
   <button class="booth-btn notes-toggle" data-action="toggle-notes" type="button">Notes</button>
   <div class="notes-area hidden" data-role="notes">
     <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+  </div>
+  <div class="shopping-editor hidden" data-role="shopping-editor">
+    <ul class="shopping-list" data-role="shopping-items"></ul>
+    <form class="shopping-add" data-action="add-buy-item">
+      <input type="text" data-role="shopping-input" placeholder="Add a game to buy…" />
+      <button type="submit" class="shopping-add-btn">+ Add</button>
+    </form>
   </div>
 </div>
