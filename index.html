@@ -33,7 +33,7 @@
     line-height: 1.5;
     -webkit-text-size-adjust: 100%;
   }
-  body { padding: 0 16px 80px; }
+  body { padding: 0 16px 80px; overflow-x: hidden; }
   header.top {
     max-width: 1200px;
     margin: 0 auto;
@@ -85,24 +85,31 @@
     position: sticky;
     top: 0;
     z-index: 30;
-    background: linear-gradient(180deg, var(--bg) 0%, rgba(26,20,16,0.85) 100%);
+    background: rgba(26, 20, 16, 0.92);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     padding: 10px 0;
-    margin: 0 -16px 0;
-    padding-left: 16px;
-    padding-right: 16px;
     border-bottom: 1px solid var(--line);
   }
   .global-search .wrap {
     max-width: 1200px;
     margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .global-search .wrap > input { grid-column: 1 / -1; }
+  .global-search .btn-row {
     display: flex;
+    gap: 8px;
     align-items: center;
-    gap: 10px;
+  }
+  @media (min-width: 520px) {
+    .global-search .wrap { grid-template-columns: 1fr auto; align-items: center; }
+    .global-search .wrap > input { grid-column: auto; }
   }
   .global-search input {
-    flex: 1;
+    width: 100%;
     min-width: 0;
     background: var(--panel-2);
     color: var(--ink);
@@ -119,11 +126,15 @@
     border-radius: 10px;
     padding: 9px 14px;
     font-family: inherit;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
+    flex: 1 1 auto;
+    min-height: 40px;
+  }
+  @media (min-width: 520px) {
+    .global-search button { flex: 0 0 auto; min-height: 0; }
   }
   .global-search button.active { border-color: var(--accent); color: var(--accent); }
-  .global-search .hint { color: var(--ink-dim); font-size: 11px; margin-top: 4px; }
   .controls {
     display: flex;
     flex-wrap: wrap;
@@ -371,9 +382,11 @@
 
 <div class="global-search">
   <div class="wrap">
-    <input id="global-q" type="search" placeholder="Search exhibitor, game, publisher, category, hall, stand…" autocomplete="off" inputmode="search">
-    <button id="visited-only" type="button" title="Show only stands you've marked as visited">Visited</button>
-    <button id="unvisited-only" type="button" title="Hide stands you've already visited">Unvisited</button>
+    <input id="global-q" type="search" placeholder="Search exhibitor, game, publisher, category, hall…" autocomplete="off" inputmode="search">
+    <div class="btn-row">
+      <button id="visited-only" type="button" title="Show only stands you've marked as visited">Visited only</button>
+      <button id="unvisited-only" type="button" title="Hide stands you've already visited">Unvisited only</button>
+    </div>
   </div>
 </div>
 
