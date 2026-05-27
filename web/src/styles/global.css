@@ -286,6 +286,13 @@ a:hover {
   letter-spacing: 0.06em;
   font-family: var(--font-sans);
 }
+/* Inside the filter tray, give every row's label a uniform width so the
+ * pills start at the same x-position across rows (otherwise they slope
+ * out and right as the label text gets longer). */
+.filter-tray .pill-row .label {
+  flex: 0 0 72px;
+  text-align: right;
+}
 .day-row {
   margin-top: 6px;
 }
