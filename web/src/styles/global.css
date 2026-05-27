@@ -449,15 +449,16 @@ body[data-searching='1'] #tab-bar {
   border-color: var(--accent);
   background: linear-gradient(180deg, var(--accent-soft) 0%, var(--panel) 35%);
 }
+/* Buy state: subtle left border accent + small corner icon, no big pill. */
 .card.buying {
-  border-color: var(--buy);
+  border-left: 3px solid var(--buy);
+  padding-left: 11px;
 }
 .card.skipped {
   opacity: 0.5;
 }
 .card.visited::before,
-.card.revisit::before,
-.card.buying::before {
+.card.revisit::before {
   position: absolute;
   top: -10px;
   right: 12px;
@@ -478,16 +479,22 @@ body[data-searching='1'] #tab-bar {
   background: var(--accent);
   color: #fff;
 }
-.card.buying::before {
-  content: '🛒 buying';
+.card.buying::after {
+  content: '🛒';
+  position: absolute;
+  top: -8px;
+  right: -8px;
   background: var(--buy);
   color: #1a1a2e;
-  right: auto;
-  left: 12px;
-}
-.card.visited.buying::after,
-.card.revisit.buying::after {
-  /* Duplicate badges: buying still shows on left when visited badge on right */
+  font-size: 14px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  border: 2px solid var(--panel);
 }
 .card.skipped::after {
   content: 'skipped';
@@ -502,6 +509,10 @@ body[data-searching='1'] #tab-bar {
   border-radius: 999px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  width: auto;
+  height: auto;
+  box-shadow: none;
+  border: 0;
 }
 
 .card-head {
@@ -662,6 +673,31 @@ body[data-searching='1'] #tab-bar {
   color: var(--ink-dim);
   font-size: 12px;
   letter-spacing: 0.04em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+}
+.tag-chip {
+  display: inline-block;
+  background: var(--panel-2);
+  color: var(--ink-dim);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: color 100ms, border-color 100ms;
+}
+.tag-chip:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.g-pub.tag-chip {
+  font-style: italic;
 }
 .card-desc {
   color: var(--ink);
@@ -745,6 +781,58 @@ ul.game-list li {
 }
 .why-btn:hover {
   color: var(--accent-2);
+}
+
+/* ---------- UKGE games fold --------------------------------------------- */
+details.ukge-games {
+  margin-top: 8px;
+  border-top: 1px dashed var(--line);
+  padding-top: 8px;
+}
+details.ukge-games > summary {
+  cursor: pointer;
+  color: var(--accent-2);
+  font-size: 14px;
+  padding: 4px 0;
+}
+ul.ukge-games-list {
+  list-style: none;
+  padding: 8px 0 0;
+  margin: 0;
+}
+ul.ukge-games-list li {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 6px;
+  align-items: start;
+}
+ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
+  grid-template-columns: 1fr;
+}
+.ukge-game-thumb {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--panel-3);
+}
+.ukge-game-body {
+  min-width: 0;
+}
+.ukge-game-name {
+  font-weight: 600;
+  margin-right: 6px;
+}
+.ukge-game-desc {
+  margin: 4px 0 0;
+  color: var(--ink-dim);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 /* ---------- Awards ------------------------------------------------------- */

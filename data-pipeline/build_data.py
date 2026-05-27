@@ -23,6 +23,7 @@ UKGE_HTML = ROOT / "ukge_raw.html"
 HOTNESS = ROOT / "bgg_hotness.json"
 AWARDS = ROOT / "awards.json"
 OUT = ROOT.parent / "web" / "src" / "data" / "dashboard.json"
+EXHIBITOR_GAMES = ROOT.parent / "web" / "src" / "data" / "exhibitor_games.json"
 BGG_USERNAME = "Kieranties"
 
 
@@ -319,6 +320,17 @@ def main():
     hotness = json.loads(HOTNESS.read_text(encoding="utf-8")) if HOTNESS.exists() else []
     awards_raw = json.loads(AWARDS.read_text(encoding="utf-8")) if AWARDS.exists() else {}
     awards_idx = {k: v for k, v in awards_raw.items() if not k.startswith("_")}
+    ex_games_cache = {}
+    if EXHIBITOR_GAMES.exists():
+        ex_games_cache = json.loads(EXHIBITOR_GAMES.read_text(encoding="utf-8"))
+
+    def ukge_games_for(slug):
+        rec = ex_games_cache.get(slug) or {}
+        return rec.get("games") or []
+
+    # Decorate every exhibitor with its UKGE-listed games.
+    for e in exhibitors:
+        e["ukge_games"] = ukge_games_for(e["slug"])
 
     by_full, by_toks = build_index(exhibitors)
 

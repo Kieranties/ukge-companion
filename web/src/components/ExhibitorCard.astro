@@ -2,6 +2,7 @@
 import Logo from './Logo.astro';
 import AwardBadge from './AwardBadge.astro';
 import BoothTools from './BoothTools.astro';
+import UkgeGames from './UkgeGames.astro';
 
 interface Game {
   bggId: string;
@@ -16,6 +17,11 @@ interface MatchedGame {
   plays: number;
   score: number;
 }
+interface UkgeGame {
+  name: string;
+  image?: string | null;
+  description?: string | null;
+}
 interface Exhibitor {
   slug: string;
   name: string;
@@ -24,6 +30,7 @@ interface Exhibitor {
   categories?: string[];
   description?: string;
   logo?: string;
+  ukge_games?: UkgeGame[];
 }
 interface Props {
   rec: {
@@ -40,7 +47,8 @@ interface Props {
 const { rec } = Astro.props;
 const e = rec.exhibitor;
 const url = `https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/${e.slug}/`;
-const cats = (e.categories || []).join(' · ');
+const cats = (e.categories || []);
+const catsString = cats.join(' · ');
 const whyText = `Matched on ${rec.matched_publishers.length} publisher${rec.matched_publishers.length === 1 ? '' : 's'} credited on ${rec.games.length} of your games: ${rec.matched_publishers.slice(0, 8).join(', ')}${rec.matched_publishers.length > 8 ? '…' : ''}`;
 
 // Build haystack for search index — all the fields a query might match.
@@ -65,7 +73,7 @@ const pubs = rec.matched_publishers.join(' ');
   data-name={(e.name || '').toLowerCase()}
   data-hall={(e.hall || '').toLowerCase()}
   data-stand={e.stand || ''}
-  data-categories={cats.toLowerCase()}
+  data-categories={catsString.toLowerCase()}
   data-description={(e.description || '').toLowerCase()}
   data-games={gameNames.toLowerCase()}
   data-publishers={pubs.toLowerCase()}
@@ -95,23 +103,30 @@ const pubs = rec.matched_publishers.join(' ');
       <div class="stat"><strong>{rec.score}</strong><span>score</span></div>
     </div>
   </header>
-  {cats && <div class="card-cats">{cats}</div>}
+  {cats.length > 0 && (
+    <div class="card-cats">
+      {cats.map((c) => (
+        <button class="tag-chip" data-filter={c} type="button">{c}</button>
+      ))}
+    </div>
+  )}
   {e.description && <p class="card-desc">{e.description}</p>}
   <details class="game-list-wrap">
     <summary>{rec.games.length} matching {rec.games.length === 1 ? 'game' : 'games'} in your collection</summary>
     <ul class="game-list">
       {rec.games.map((g) => (
         <li>
-          <span class="g-name">{g.game.name}</span>
+          <button class="g-name tag-chip" data-filter={g.game.name} type="button">{g.game.name}</button>
           <span class="g-year"> ({g.game.year})</span>
           <AwardBadge award={g.game.award} />
           <span class="g-plays">{g.plays}× plays</span>
-          <span class="g-pub">via {g.publisher}</span>
+          <button class="g-pub tag-chip" data-filter={g.publisher} type="button">via {g.publisher}</button>
           {g.game.geekRating && <span class="g-meta"> · BGG {g.game.geekRating.toFixed(2)}</span>}
         </li>
       ))}
     </ul>
   </details>
   <button class="why-btn" type="button" title={whyText}>why is this here?</button>
+  <UkgeGames games={e.ukge_games} exhibitorName={e.name} />
   <BoothTools />
 </article>

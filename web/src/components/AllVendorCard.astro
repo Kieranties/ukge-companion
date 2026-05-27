@@ -1,6 +1,7 @@
 ---
 import Logo from './Logo.astro';
 import BoothTools from './BoothTools.astro';
+import UkgeGames from './UkgeGames.astro';
 
 interface Props {
   exhibitor: {
@@ -11,11 +12,13 @@ interface Props {
     categories?: string[];
     description?: string;
     logo?: string;
+    ukge_games?: any[];
   };
 }
 const { exhibitor: e } = Astro.props;
 const url = `https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/${e.slug}/`;
-const cats = (e.categories || []).join(' · ');
+const cats = (e.categories || []);
+const catsString = cats.join(' · ');
 ---
 <article
   class="card no-rank"
@@ -24,7 +27,7 @@ const cats = (e.categories || []).join(' · ');
   data-name={(e.name || '').toLowerCase()}
   data-hall={(e.hall || '').toLowerCase()}
   data-stand={e.stand || ''}
-  data-categories={cats.toLowerCase()}
+  data-categories={catsString.toLowerCase()}
   data-description={(e.description || '').toLowerCase()}
 >
   <header class="card-head">
@@ -37,7 +40,12 @@ const cats = (e.categories || []).join(' · ');
       </div>
     </div>
   </header>
-  {cats && <div class="card-cats">{cats}</div>}
+  {cats.length > 0 && (
+    <div class="card-cats">
+      {cats.map((c) => <button class="tag-chip" data-filter={c} type="button">{c}</button>)}
+    </div>
+  )}
   {e.description && <p class="card-desc">{e.description}</p>}
+  <UkgeGames games={e.ukge_games} exhibitorName={e.name} />
   <BoothTools />
 </article>

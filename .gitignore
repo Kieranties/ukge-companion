@@ -8,5 +8,6 @@ web/node_modules/
 web/dist/
 web/.astro/
 
-# Generated data
+# Generated data (rebuilt in CI from data-pipeline inputs)
 web/src/data/dashboard.json
+# Note: exhibitor_games.json IS committed — it's a slow scrape cache (~10min)

@@ -21,7 +21,8 @@ interface Props {
 const { hot } = Astro.props;
 const g = hot.game;
 const bggUrl = `https://boardgamegeek.com/boardgame/${g.bggId}`;
-const cats = (g.categories || []).slice(0, 4).join(' · ');
+const cats = (g.categories || []).slice(0, 4);
+const catsString = cats.join(' · ');
 const haystack = [
   g.name,
   String(g.year || ''),
@@ -36,7 +37,7 @@ const haystack = [
   data-kind="hot-game"
   data-slug={`hot-${g.bggId}`}
   data-name={(g.name || '').toLowerCase()}
-  data-categories={cats.toLowerCase()}
+  data-categories={catsString.toLowerCase()}
   data-hall=""
 >
   <a class="hot-thumb" href={bggUrl} target="_blank" rel="noopener" title="View on BoardGameGeek">
@@ -50,8 +51,11 @@ const haystack = [
         <div class="hot-meta">{g.year} · BGG {g.geekRating ? g.geekRating.toFixed(2) : '—'}</div>
       </div>
     </header>
-    <div class="card-cats" style="margin-top:6px">{cats}<AwardBadge award={g.award} /></div>
-    <div class="hot-venues-label">See it at:</div>
+    <div class="card-cats" style="margin-top:6px">
+      {cats.map((c) => <button class="tag-chip" data-filter={c} type="button">{c}</button>)}
+      <AwardBadge award={g.award} />
+    </div>
+    <div class="hot-venues-label">Published by:</div>
     {hot.exhibitors.slice(0, 3).map((me) => {
       const u = `https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/${me.exhibitor.slug}/`;
       const loc = [me.exhibitor.hall, me.exhibitor.stand].filter(Boolean).join(' ');
