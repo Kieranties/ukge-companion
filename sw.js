@@ -1,7 +1,7 @@
 // UKGE Companion service worker — cache-first for the dashboard so it
 // keeps working on the NEC's flaky show-floor wifi.
-const CACHE = 'ukge-companion-v1';
-const ASSETS = ['./', './index.html'];
+const CACHE = 'ukge-companion-v2';
+const ASSETS = ['./', './index.html', './manifest.json', './icon.svg', './icon-maskable.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));

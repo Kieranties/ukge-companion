@@ -11,9 +11,40 @@ ROOT = Path(__file__).parent
 COLLECTION = ROOT / "kieranties_collection.json"
 UKGE_HTML = ROOT / "ukge_raw.html"
 HOTNESS = ROOT / "bgg_hotness.json"
+AWARDS = ROOT / "awards.json"
 OUTPUT = ROOT / "index.html"
 SW_OUTPUT = ROOT / "sw.js"
 BGG_USERNAME = "Kieranties"
+
+_AWARDS_INDEX = {}
+
+
+def load_awards():
+    global _AWARDS_INDEX
+    if AWARDS.exists():
+        data = json.loads(AWARDS.read_text(encoding="utf-8"))
+        _AWARDS_INDEX = {k: v for k, v in data.items() if not k.startswith("_")}
+    return _AWARDS_INDEX
+
+
+def awards_for(bgg_id):
+    return _AWARDS_INDEX.get(str(bgg_id), [])
+
+
+def best_award(bgg_id):
+    """Pick the single most prestigious honor to flag inline."""
+    awards = awards_for(bgg_id)
+    if not awards:
+        return None
+    priority = {
+        ("Spiel des Jahres", "winner"): 0,
+        ("Kennerspiel des Jahres", "winner"): 1,
+        ("Spiel des Jahres", "nominee"): 2,
+        ("Kennerspiel des Jahres", "nominee"): 3,
+        ("Golden Geek", "winner"): 4,
+        ("Spiel des Jahres", "recommended"): 5,
+    }
+    return min(awards, key=lambda a: priority.get((a.get("award"), a.get("kind")), 99))
 
 
 # ---------------------------------------------------------------------------
@@ -364,6 +395,8 @@ def match_publisher(pub_name, by_full_key, by_token_set):
 # ---------------------------------------------------------------------------
 
 def main():
+    load_awards()
+    print(f"loaded {len(_AWARDS_INDEX)} award-honored games")
     collection = json.loads(COLLECTION.read_text(encoding="utf-8"))
     print(f"loaded {len(collection)} games")
 
@@ -511,6 +544,25 @@ def esc(s):
     return html.escape(str(s))
 
 
+BOOTH_TOOLS_HTML = """
+      <div class="day-row">
+        <span class="day-row-label">Day:</span>
+        <button class="day-chip" data-day="fri" type="button">Fri</button>
+        <button class="day-chip" data-day="sat" type="button">Sat</button>
+        <button class="day-chip" data-day="sun" type="button">Sun</button>
+      </div>
+      <div class="booth-tools">
+        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
+        <button class="buy-btn" data-action="toggle-buy" type="button" title="Buy something from this stand">🛒 Buy</button>
+        <button class="skip-btn" data-action="toggle-skip" type="button">Skip</button>
+        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
+        <div class="notes-area hidden" data-role="notes">
+          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
+        </div>
+      </div>
+"""
+
+
 def render_logo(e):
     """Render an exhibitor logo or a coloured letter fallback."""
     logo = e.get("logo")
@@ -521,6 +573,25 @@ def render_logo(e):
     return f'<div class="ex-logo ex-logo-placeholder">{esc(initial)}</div>'
 
 
+def award_chip(bgg_id):
+    """Inline award badge HTML for a game, empty string if no honor."""
+    a = best_award(bgg_id)
+    if not a:
+        return ""
+    kind = a.get("kind", "")
+    name = a.get("award", "")
+    year = a.get("year", "")
+    short = {
+        "Spiel des Jahres": "SdJ",
+        "Kennerspiel des Jahres": "KSdJ",
+        "Golden Geek": "Geek",
+    }.get(name, name[:4])
+    cls = "award-winner" if kind == "winner" else "award-nominee" if kind in ("nominee", "recommended") else "award-other"
+    sym = "🏆" if kind == "winner" else "✦"
+    title = f"{name} {year} ({kind})"
+    return f'<span class="award {cls}" title="{esc(title)}">{sym} {esc(short)} {year}</span>'
+
+
 def render_game_chip(g):
     name = esc(g["game"]["name"])
     year = esc(g["game"]["year"] or "")
@@ -528,9 +599,11 @@ def render_game_chip(g):
     pub = esc(g["publisher"])
     rating = g["game"].get("geekRating")
     rating_s = f" · BGG {rating:.2f}" if rating else ""
+    award = award_chip(g["game"].get("bggId"))
     return (
         f'<li class="game-chip"><span class="g-name">{name}</span>'
         f'<span class="g-year"> ({year})</span>'
+        f'{award}'
         f'<span class="g-plays" title="Plays">{plays}× plays</span>'
         f'<span class="g-pub" title="Publisher on BGG">via {pub}</span>'
         f'<span class="g-meta">{rating_s}</span></li>'
@@ -612,14 +685,7 @@ def render_exhibitor_row(m, idx):
         <ul class="game-list">{games_html}</ul>
       </details>
       <button class="why-btn" type="button" data-action="why" title="{esc(why_text)}">why is this here?</button>
-      <div class="booth-tools">
-        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
-        <button class="skip-btn" data-action="toggle-skip" type="button">Skip</button>
-        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
-        <div class="notes-area hidden" data-role="notes">
-          <textarea data-role="notes-text" placeholder="Notes about this stand — saved on your device only"></textarea>
-        </div>
-      </div>
+{BOOTH_TOOLS_HTML}
     </article>
     """
 
@@ -667,14 +733,7 @@ def render_discovery_row(d, idx):
       <div class="dx-cats">{cats}</div>
       {f'<p class="dx-desc">{desc}</p>' if desc else ''}
       <div class="dx-kw">matched on: {kw}</div>
-      <div class="booth-tools">
-        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
-        <button class="skip-btn" data-action="toggle-skip" type="button">Skip</button>
-        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
-        <div class="notes-area hidden" data-role="notes">
-          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
-        </div>
-      </div>
+{BOOTH_TOOLS_HTML}
     </article>
     """
 
@@ -717,14 +776,7 @@ def render_all_vendor_card(e):
       </header>
       <div class="av-cats">{cats}</div>
       {f'<p class="av-desc">{desc}</p>' if desc else ''}
-      <div class="booth-tools booth-tools-compact">
-        <button class="visit-btn" data-action="toggle-visit" type="button">Mark as visited</button>
-        <button class="skip-btn" data-action="toggle-skip" type="button">Skip</button>
-        <button class="notes-toggle" data-action="toggle-notes" type="button">Notes</button>
-        <div class="notes-area hidden" data-role="notes">
-          <textarea data-role="notes-text" placeholder="Notes — saved on your device only"></textarea>
-        </div>
-      </div>
+{BOOTH_TOOLS_HTML}
     </article>
     """
 
@@ -738,6 +790,7 @@ def render_hot_card(item, idx):
     rating = h.get("geekRating") or 0
     rating_s = f"{rating:.2f}" if rating else "—"
     cats = " · ".join(esc(c) for c in (h.get("categories") or [])[:4])
+    award = award_chip(h.get("bggId"))
     venues = []
     for me in item["exhibitors"][:3]:
         e = me["exhibitor"]
@@ -765,7 +818,7 @@ def render_hot_card(item, idx):
             <div class="hot-meta">{year} · BGG {rating_s}</div>
           </div>
         </header>
-        <div class="hot-cats">{cats}</div>
+        <div class="hot-cats">{cats}{award}</div>
         <div class="hot-venues">
           <div class="hot-venues-label">See it at:</div>
           {venues_html}
@@ -818,8 +871,8 @@ def build_html(ranked, discovery, collection, exhibitors, top_cats, top_mechs, h
 
 SERVICE_WORKER = r"""// UKGE Companion service worker — cache-first for the dashboard so it
 // keeps working on the NEC's flaky show-floor wifi.
-const CACHE = 'ukge-companion-v1';
-const ASSETS = ['./', './index.html'];
+const CACHE = 'ukge-companion-v2';
+const ASSETS = ['./', './index.html', './manifest.json', './icon.svg', './icon-maskable.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));

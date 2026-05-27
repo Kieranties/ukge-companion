@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Maskable icon: keep all important content inside the central 80% safe zone. -->
+  <rect width="512" height="512" fill="#e76f51"/>
+  <g fill="#fdf8ed">
+    <circle cx="256" cy="206" r="54"/>
+    <path d="M256 250 C 312 250 360 290 360 350 L 360 410 L 152 410 L 152 350 C 152 290 200 250 256 250 Z"/>
+  </g>
+  <circle cx="256" cy="206" r="12" fill="#2a9d8f"/>
+</svg>

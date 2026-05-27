@@ -7,6 +7,9 @@
 <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
 <title>UKGE 2026 — Personalised Exhibitor Guide for {bgg_username}</title>
 <style>
   /* Light theme (parchment + coral + sage) */
@@ -748,6 +751,117 @@
   .panel.active {{ display: block; }}
   .panel section:first-of-type {{ margin-top: 18px; }}
 
+  /* Award badges */
+  .award {{
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 2px 6px;
+    border-radius: 6px;
+    margin-left: 6px;
+    vertical-align: middle;
+    cursor: help;
+    line-height: 1.4;
+  }}
+  .award-winner {{ background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); }}
+  .award-nominee {{ background: var(--accent-2-soft); color: var(--accent-2); border: 1px solid var(--accent-2); }}
+  .award-other {{ background: var(--panel-2); color: var(--ink-dim); border: 1px solid var(--line); }}
+
+  /* Day chips on each card */
+  .day-row {{
+    display: flex;
+    gap: 4px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }}
+  .day-row-label {{
+    font-size: 10px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    align-self: center;
+    margin-right: 4px;
+  }}
+  .day-chip {{
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 26px;
+  }}
+  .day-chip.active {{
+    background: var(--accent-2);
+    color: #fff;
+    border-color: var(--accent-2);
+  }}
+
+  /* Buy button */
+  .buy-btn {{
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    min-height: 36px;
+    flex: 0 1 auto;
+  }}
+  .buy-btn.on {{ background: #d4a017; color: #fff; border-color: #d4a017; font-weight: 600; }}
+  [data-theme="dark"] .buy-btn.on {{ background: #facc15; color: #1a1a2e; border-color: #facc15; }}
+
+  /* Buy badge on cards */
+  .ex-card.buying::before, .av-card.buying::before, .dx-card.buying::before {{
+    content: "🛒 buying";
+    background: #d4a017;
+  }}
+  [data-theme="dark"] .ex-card.buying::before,
+  [data-theme="dark"] .av-card.buying::before,
+  [data-theme="dark"] .dx-card.buying::before {{ background: #facc15; color: #1a1a2e; }}
+
+  /* Day filter row */
+  .day-filter-row {{
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }}
+  .day-filter-row > span {{
+    font-size: 11px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }}
+  .day-filter-row button {{
+    background: var(--panel);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+  }}
+  .day-filter-row button.active {{
+    background: var(--accent-2);
+    color: #fff;
+    border-color: var(--accent-2);
+  }}
+
+  /* Install button */
+  #install-btn {{ display: none; }}
+  #install-btn.available {{ display: inline-flex; }}
+
   /* Utilities */
   .hidden {{ display: none !important; }}
   .invisible {{ visibility: hidden !important; }}
@@ -781,8 +895,10 @@
     <div class="sub">29–31 May · NEC Birmingham · Built for <a href="https://boardgamegeek.com/collection/user/{bgg_username}" target="_blank" rel="noopener"><strong>{bgg_username}</strong></a> from your BGG collection</div>
   </div>
   <div class="actions">
+    <button class="icon-btn" id="install-btn" title="Install as an app on your device"><span class="ico">⬇</span> Install</button>
+    <button class="icon-btn" id="share-btn" title="Generate a shareable link to your plan"><span class="ico">↗</span> Share</button>
     <button class="icon-btn" id="theme-toggle" title="Toggle light/dark"><span class="ico" id="theme-ico">◐</span><span id="theme-label">Theme</span></button>
-    <button class="icon-btn" id="export-btn" title="Export visited stands + notes as markdown"><span class="ico">↗</span> Export</button>
+    <button class="icon-btn" id="export-btn" title="Export visited stands + notes as markdown"><span class="ico">⤓</span> Export</button>
   </div>
 </header>
 
@@ -794,7 +910,17 @@
       <button class="status-pill" data-status="unvisited">Unvisited</button>
       <button class="status-pill" data-status="visited">Visited</button>
       <button class="status-pill" data-status="revisit">Revisit ★</button>
+      <button class="status-pill" data-status="buy">Buy 🛒</button>
       <button id="hide-skipped" type="button" title="Toggle hiding skipped stands">Hide skipped</button>
+    </div>
+  </div>
+  <div class="wrap" style="margin-top:6px">
+    <div class="day-filter-row">
+      <span>Day:</span>
+      <button class="day-filter active" data-day="any">Any</button>
+      <button class="day-filter" data-day="fri">Fri</button>
+      <button class="day-filter" data-day="sat">Sat</button>
+      <button class="day-filter" data-day="sun">Sun</button>
     </div>
   </div>
 </div>
@@ -956,6 +1082,42 @@
   Notes and visited markers stored on your device only via localStorage.
 </footer>
 
+<!-- Share modal -->
+<div class="modal" id="share-modal">
+  <div class="modal-box">
+    <h3>Share your plan</h3>
+    <p style="margin: 0 0 10px; color: var(--ink-dim); font-size: 13px;">
+      Anyone who opens this link will see your visited / buy / day-planned stands as a one-time import prompt.
+      Notes are excluded by default (they're personal); tick the box to include them.
+    </p>
+    <label style="display:flex; align-items:center; gap:8px; margin: 8px 0; font-size: 14px; color: var(--ink);">
+      <input type="checkbox" id="share-include-notes"> Include notes
+    </label>
+    <textarea id="share-text" readonly></textarea>
+    <div class="modal-actions">
+      <button id="share-copy" class="primary">Copy link</button>
+      <button id="share-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import-from-share confirmation modal -->
+<div class="modal" id="import-modal">
+  <div class="modal-box">
+    <h3>Import shared plan?</h3>
+    <p id="import-summary" style="margin: 0 0 10px; color: var(--ink); font-size: 14px;"></p>
+    <p style="margin: 0 0 10px; color: var(--ink-dim); font-size: 13px;">
+      This will <strong>merge</strong> with your existing plan — entries already in your plan stay as they are; new entries from
+      the shared link are added. Refresh + tap Reset in this dialog to start fresh first.
+    </p>
+    <div class="modal-actions">
+      <button id="import-cancel">Cancel</button>
+      <button id="import-replace">Replace mine</button>
+      <button id="import-merge" class="primary">Merge</button>
+    </div>
+  </div>
+</div>
+
 <!-- Export modal -->
 <div class="modal" id="export-modal">
   <div class="modal-box">
@@ -1047,17 +1209,23 @@
     const slug = card.dataset.slug;
     const entry = entryFor(slug);
     const visitBtn = card.querySelector('[data-action="toggle-visit"]');
+    const buyBtn = card.querySelector('[data-action="toggle-buy"]');
     const skipBtn = card.querySelector('[data-action="toggle-skip"]');
     const notesBtn = card.querySelector('[data-action="toggle-notes"]');
     const notesArea = card.querySelector('[data-role="notes"]');
     const notesText = card.querySelector('[data-role="notes-text"]');
+    const dayChips = Array.from(card.querySelectorAll('.day-chip'));
 
     function syncUI() {{
       const status = statusOf(entry);
       const skipped = !!entry.skipped;
+      const buying = !!entry.buy;
       card.classList.toggle('visited', status === 'visited');
       card.classList.toggle('revisit', status === 'revisit');
       card.classList.toggle('skipped', skipped);
+      card.classList.toggle('buying', buying);
+      card.dataset.day = entry.day || '';
+      card.dataset.buy = buying ? '1' : '0';
       if (visitBtn) {{
         if (status === 'revisit') visitBtn.textContent = '★ Visit again';
         else if (status === 'visited') visitBtn.textContent = '✓ Visited';
@@ -1065,21 +1233,32 @@
         visitBtn.classList.toggle('visited', status === 'visited');
         visitBtn.classList.toggle('revisit', status === 'revisit');
       }}
+      if (buyBtn) {{
+        buyBtn.textContent = buying ? '🛒 Buying' : '🛒 Buy';
+        buyBtn.classList.toggle('on', buying);
+      }}
       if (skipBtn) {{
         skipBtn.textContent = skipped ? 'Skipped' : 'Skip';
         skipBtn.classList.toggle('on', skipped);
       }}
+      for (const chip of dayChips) chip.classList.toggle('active', chip.dataset.day === entry.day);
       const hasNotes = !!(entry.notes && entry.notes.trim());
       if (notesBtn) notesBtn.classList.toggle('has-notes', hasNotes);
       if (notesText && notesText.value !== (entry.notes || '')) notesText.value = entry.notes || '';
     }}
     syncUI();
     visitBtn?.addEventListener('click', () => {{ cycleVisit(entry); save(); refreshAll(); }});
+    buyBtn?.addEventListener('click', () => {{
+      entry.buy = !entry.buy;
+      if (entry.buy) {{ entry.buyAt = new Date().toISOString(); delete entry.skipped; }}
+      else delete entry.buyAt;
+      save(); refreshAll();
+    }});
     skipBtn?.addEventListener('click', () => {{
       entry.skipped = !entry.skipped;
       if (entry.skipped) {{
         entry.skippedAt = new Date().toISOString();
-        delete entry.status; delete entry.visited;
+        delete entry.status; delete entry.visited; delete entry.buy;
       }} else delete entry.skippedAt;
       save(); refreshAll();
     }});
@@ -1087,6 +1266,13 @@
       notesArea.classList.toggle('hidden');
       if (!notesArea.classList.contains('hidden')) notesText.focus();
     }});
+    for (const chip of dayChips) {{
+      chip.addEventListener('click', () => {{
+        entry.day = entry.day === chip.dataset.day ? undefined : chip.dataset.day;
+        if (entry.day) entry.dayAt = new Date().toISOString();
+        save(); refreshAll();
+      }});
+    }}
     let notesDebounce;
     notesText?.addEventListener('input', () => {{
       clearTimeout(notesDebounce);
@@ -1103,9 +1289,13 @@
       const slug = card.dataset.slug;
       const entry = state[slug] || {{}};
       const status = statusOf(entry);
+      const buying = !!entry.buy;
       card.classList.toggle('visited', status === 'visited');
       card.classList.toggle('revisit', status === 'revisit');
       card.classList.toggle('skipped', !!entry.skipped);
+      card.classList.toggle('buying', buying);
+      card.dataset.day = entry.day || '';
+      card.dataset.buy = buying ? '1' : '0';
       const vb = card.querySelector('[data-action="toggle-visit"]');
       if (vb) {{
         if (status === 'revisit') vb.textContent = '★ Visit again';
@@ -1114,11 +1304,18 @@
         vb.classList.toggle('visited', status === 'visited');
         vb.classList.toggle('revisit', status === 'revisit');
       }}
+      const bb = card.querySelector('[data-action="toggle-buy"]');
+      if (bb) {{
+        bb.textContent = buying ? '🛒 Buying' : '🛒 Buy';
+        bb.classList.toggle('on', buying);
+      }}
       const sb = card.querySelector('[data-action="toggle-skip"]');
       if (sb) {{
         sb.textContent = entry.skipped ? 'Skipped' : 'Skip';
         sb.classList.toggle('on', !!entry.skipped);
       }}
+      const chips = card.querySelectorAll('.day-chip');
+      for (const c of chips) c.classList.toggle('active', c.dataset.day === entry.day);
     }}
     buildRoute();
     applyFilters();
@@ -1135,11 +1332,12 @@
   const avFilter = document.getElementById('av-filter');
   const avHall = document.getElementById('av-hall');
   const statusPills = Array.from(document.querySelectorAll('.status-pill'));
+  const dayFilterBtns = Array.from(document.querySelectorAll('.day-filter'));
   const hideSkippedBtn = document.getElementById('hide-skipped');
-  let statusFilter = 'all'; // all | unvisited | visited | revisit
+  let statusFilter = 'all'; // all | unvisited | visited | revisit | buy
+  let dayFilter = 'any';    // any | fri | sat | sun
   let hideSkipped = true;
   hideSkippedBtn.classList.add('active');
-  // Set initial pill state
   statusPills.find(p => p.dataset.status === 'all')?.classList.add('active');
 
   function applyFilters() {{
@@ -1163,6 +1361,8 @@
       const visited = c.classList.contains('visited');
       const revisit = c.classList.contains('revisit');
       const skipped = c.classList.contains('skipped');
+      const buying = c.classList.contains('buying');
+      const day = c.dataset.day || '';
       const passesGlobal = !q || hay.includes(q);
       const passesSection = !sQ || hay.includes(sQ);
       const passesHall = !sH || hall === sH;
@@ -1171,9 +1371,11 @@
         if (statusFilter === 'unvisited') passesStatus = !visited && !revisit;
         else if (statusFilter === 'visited') passesStatus = visited;
         else if (statusFilter === 'revisit') passesStatus = revisit;
+        else if (statusFilter === 'buy') passesStatus = buying;
       }}
+      const passesDay = isHot ? true : (dayFilter === 'any' || day === dayFilter);
       const passesSkip = isHot ? true : (!hideSkipped || !skipped);
-      c.classList.toggle('hidden', !(passesGlobal && passesSection && passesHall && passesStatus && passesSkip));
+      c.classList.toggle('hidden', !(passesGlobal && passesSection && passesHall && passesStatus && passesDay && passesSkip));
     }}
     if (exSort) {{
       const key = exSort.value;
@@ -1197,6 +1399,13 @@
     pill.addEventListener('click', () => {{
       statusFilter = pill.dataset.status || 'all';
       for (const p of statusPills) p.classList.toggle('active', p === pill);
+      applyFilters();
+    }});
+  }}
+  for (const btn of dayFilterBtns) {{
+    btn.addEventListener('click', () => {{
+      dayFilter = btn.dataset.day || 'any';
+      for (const b of dayFilterBtns) b.classList.toggle('active', b === btn);
       applyFilters();
     }});
   }}
@@ -1328,6 +1537,35 @@
       }}
       lines.push('');
     }}
+    const buying = Object.entries(state).filter(([_, v]) => v.buy);
+    if (buying.length) {{
+      lines.push('## 🛒 Buy list');
+      for (const [slug, v] of buying) {{
+        const info = lookup(slug);
+        lines.push(`- **${{info.name}}** — ${{info.hall}} ${{info.stand}}`);
+        if (v.notes && v.notes.trim()) {{
+          for (const ln of v.notes.split(/\r?\n/)) lines.push(`  - ${{ln}}`);
+        }}
+      }}
+      lines.push('');
+    }}
+    // Group by day
+    const dayLabels = {{fri: 'Friday', sat: 'Saturday', sun: 'Sunday'}};
+    for (const dKey of ['fri', 'sat', 'sun']) {{
+      const dayEntries = Object.entries(state).filter(([_, v]) => v.day === dKey && !v.skipped);
+      if (dayEntries.length) {{
+        lines.push(`## ${{dayLabels[dKey]}} plan`);
+        for (const [slug, v] of dayEntries) {{
+          const info = lookup(slug);
+          const tags = [];
+          if (v.status === 'visited') tags.push('✓');
+          else if (v.status === 'revisit') tags.push('★');
+          if (v.buy) tags.push('🛒');
+          lines.push(`- ${{tags.join(' ') || '·'}} ${{info.name}} — ${{info.hall}} ${{info.stand}}`);
+        }}
+        lines.push('');
+      }}
+    }}
     const skipped = Object.entries(state).filter(([_, v]) => v.skipped);
     if (skipped.length) {{
       lines.push('## Skipped');
@@ -1388,6 +1626,135 @@
       if (fb) fb.style.display = 'block';
     }}
   }}, 4000);
+
+  // ------- Share via URL fragment
+  function compactState(includeNotes) {{
+    const out = {{}};
+    for (const [slug, e] of Object.entries(state)) {{
+      const slim = {{}};
+      if (e.status) slim.s = e.status === 'revisit' ? 'r' : 'v';
+      if (e.skipped) slim.k = 1;
+      if (e.buy) slim.b = 1;
+      if (e.day) slim.d = e.day[0]; // 'f' | 's' | 'u' ← first letter, decoded back to fri/sat/sun
+      if (includeNotes && e.notes && e.notes.trim()) slim.n = e.notes;
+      if (Object.keys(slim).length) out[slug] = slim;
+    }}
+    return out;
+  }}
+  function encodeShare(includeNotes) {{
+    const json = JSON.stringify(compactState(includeNotes));
+    // UTF-8 safe base64
+    const b64 = btoa(unescape(encodeURIComponent(json)));
+    return b64.replace(/=+$/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  }}
+  function decodeShare(token) {{
+    try {{
+      let b64 = token.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
+      const json = decodeURIComponent(escape(atob(b64)));
+      return JSON.parse(json);
+    }} catch (e) {{ return null; }}
+  }}
+  function dayFromShort(c) {{
+    return ({{f: 'fri', s: 'sat', u: 'sun'}})[c];
+  }}
+
+  const shareBtn = document.getElementById('share-btn');
+  const shareModal = document.getElementById('share-modal');
+  const shareText = document.getElementById('share-text');
+  const shareIncludeNotes = document.getElementById('share-include-notes');
+  function updateShareLink() {{
+    const token = encodeShare(shareIncludeNotes.checked);
+    const url = location.origin + location.pathname + '#share=' + token;
+    shareText.value = url;
+  }}
+  shareBtn?.addEventListener('click', () => {{
+    updateShareLink();
+    shareModal.classList.add('open');
+  }});
+  shareIncludeNotes?.addEventListener('change', updateShareLink);
+  document.getElementById('share-close')?.addEventListener('click', () => shareModal.classList.remove('open'));
+  shareModal?.addEventListener('click', (e) => {{ if (e.target === shareModal) shareModal.classList.remove('open'); }});
+  document.getElementById('share-copy')?.addEventListener('click', async () => {{
+    try {{
+      await navigator.clipboard.writeText(shareText.value);
+      showToast('Link copied');
+    }} catch (e) {{
+      shareText.select(); document.execCommand('copy'); showToast('Copied');
+    }}
+  }});
+
+  // ------- Import from a #share=… URL fragment
+  function expandShared(slim) {{
+    const out = {{}};
+    if (slim.s === 'v') out.status = 'visited';
+    else if (slim.s === 'r') out.status = 'revisit';
+    if (slim.k) out.skipped = true;
+    if (slim.b) out.buy = true;
+    const d = dayFromShort(slim.d);
+    if (d) out.day = d;
+    if (slim.n) out.notes = slim.n;
+    return out;
+  }}
+  function applyImport(payload, mode) {{
+    let added = 0, replaced = 0;
+    for (const [slug, slim] of Object.entries(payload)) {{
+      const expanded = expandShared(slim);
+      if (mode === 'replace' || !state[slug] || Object.keys(state[slug]).length === 0) {{
+        state[slug] = expanded;
+        added++;
+      }} else {{
+        // merge: only fill in fields that aren't set
+        const existing = state[slug];
+        for (const k of Object.keys(expanded)) {{
+          if (!(k in existing)) {{ existing[k] = expanded[k]; replaced++; }}
+        }}
+      }}
+    }}
+    save();
+    refreshAll();
+    showToast(`Imported ${{added + replaced}} entries`);
+  }}
+  function handleSharedFragment() {{
+    const m = location.hash.match(/share=([A-Za-z0-9_-]+)/);
+    if (!m) return;
+    const payload = decodeShare(m[1]);
+    if (!payload || !Object.keys(payload).length) return;
+    const importModal = document.getElementById('import-modal');
+    const summary = document.getElementById('import-summary');
+    const slugs = Object.keys(payload);
+    const visited = slugs.filter(s => payload[s].s === 'v').length;
+    const revisit = slugs.filter(s => payload[s].s === 'r').length;
+    const buying = slugs.filter(s => payload[s].b).length;
+    summary.textContent = `${{slugs.length}} stands · ${{visited}} visited · ${{revisit}} revisit · ${{buying}} buying`;
+    importModal.classList.add('open');
+    const cleanHash = () => {{
+      // Strip ?share= without losing the active tab.
+      const tab = location.hash.replace(/^#/, '').split('&').find(s => !s.startsWith('share=')) || 'for-you';
+      history.replaceState(null, '', '#' + tab);
+    }};
+    document.getElementById('import-cancel').onclick = () => {{ importModal.classList.remove('open'); cleanHash(); }};
+    document.getElementById('import-merge').onclick = () => {{ applyImport(payload, 'merge'); importModal.classList.remove('open'); cleanHash(); }};
+    document.getElementById('import-replace').onclick = () => {{ for (const k of Object.keys(state)) delete state[k]; applyImport(payload, 'replace'); importModal.classList.remove('open'); cleanHash(); }};
+  }}
+  handleSharedFragment();
+
+  // ------- PWA install
+  const installBtn = document.getElementById('install-btn');
+  let deferredInstall = null;
+  window.addEventListener('beforeinstallprompt', (e) => {{
+    e.preventDefault();
+    deferredInstall = e;
+    installBtn?.classList.add('available');
+  }});
+  installBtn?.addEventListener('click', async () => {{
+    if (!deferredInstall) {{ showToast('Use your browser\'s "Add to Home Screen" option'); return; }}
+    deferredInstall.prompt();
+    const {{outcome}} = await deferredInstall.userChoice;
+    if (outcome === 'accepted') showToast('Installed');
+    deferredInstall = null;
+    installBtn.classList.remove('available');
+  }});
 
   // Service worker over http(s)
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {{

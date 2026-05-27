@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#fdf8ed"/>
+  <rect x="40" y="40" width="432" height="432" rx="72" fill="#e76f51"/>
+  <!-- meeple silhouette: head + body -->
+  <g fill="#fdf8ed">
+    <circle cx="256" cy="180" r="62"/>
+    <path d="M256 232 C 320 232 380 280 380 360 L 380 432 L 132 432 L 132 360 C 132 280 192 232 256 232 Z"/>
+  </g>
+  <!-- accent dot (die pip) -->
+  <circle cx="256" cy="180" r="14" fill="#2a9d8f"/>
+</svg>
