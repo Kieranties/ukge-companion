@@ -487,6 +487,9 @@ body[data-searching='1'] #tab-bar {
   box-shadow: var(--shadow);
   position: relative;
   transition: box-shadow 200ms ease;
+  /* Critical for grid: without min-width: 0 a long word or game title pushes
+   * the card wider than 1fr, unbalancing the columns. */
+  min-width: 0;
 }
 .card:hover {
   box-shadow: var(--shadow-hover);
@@ -757,6 +760,13 @@ body[data-searching='1'] #tab-bar {
   font-size: 14px;
   margin: 6px 0 10px;
   opacity: 0.95;
+  /* Cap at 4 lines with ellipsis; tap "more" via the original UKGE page if
+   * the user wants the full text. */
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 .off-topic {
   display: inline-block;
@@ -886,6 +896,11 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   color: var(--ink-dim);
   font-size: 12px;
   line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
 /* ---------- Awards ------------------------------------------------------- */
@@ -1227,6 +1242,23 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   gap: 4px;
   margin-top: 6px;
   padding-left: 66px;
+}
+.route-stop-desc {
+  margin: 6px 0 0;
+  padding-left: 66px;
+  color: var(--ink-dim);
+  font-size: 13px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 480px) {
+  .route-stop-desc {
+    padding-left: 0;
+  }
 }
 .route-stop-notes {
   margin-top: 6px;

@@ -21,6 +21,7 @@ ROOT = Path(__file__).parent
 COLLECTION = ROOT / "kieranties_collection.json"
 UKGE_HTML = ROOT / "ukge_raw.html"
 HOTNESS = ROOT / "bgg_hotness.json"
+HOT_DESCRIPTIONS = ROOT / "hot_descriptions.json"
 AWARDS = ROOT / "awards.json"
 OUT = ROOT.parent / "web" / "src" / "data" / "dashboard.json"
 EXHIBITOR_GAMES = ROOT.parent / "web" / "src" / "data" / "exhibitor_games.json"
@@ -179,7 +180,12 @@ def parse_card(card):
 def parse_exhibitors(text):
     p = ExhibitorParser()
     p.feed(text)
-    return [parse_card(c) for c in p.cards]
+    # UKGE has a "map" link that the parser will pick up as an exhibitor card
+    # because it sits under /whats-on/show/exhibitors/. Filter it out and any
+    # other slug that doesn't represent a real booth.
+    excluded_slugs = {"map", "list", "search"}
+    cards = [parse_card(c) for c in p.cards]
+    return [c for c in cards if c["slug"] and c["slug"] not in excluded_slugs and c["name"]]
 
 
 # ---------- Publisher matching --------------------------------------------
@@ -318,6 +324,18 @@ def main():
     collection = json.loads(COLLECTION.read_text(encoding="utf-8"))
     exhibitors = parse_exhibitors(UKGE_HTML.read_text(encoding="utf-8"))
     hotness = json.loads(HOTNESS.read_text(encoding="utf-8")) if HOTNESS.exists() else []
+    hot_descs = {}
+    if HOT_DESCRIPTIONS.exists():
+        raw = json.loads(HOT_DESCRIPTIONS.read_text(encoding="utf-8"))
+        # Strip HTML and decode entities; truncate to ~340 chars (ellipsis
+        # in CSS handles the visual cap to 3-4 lines per card).
+        for bgg_id, desc in raw.items():
+            text = re.sub(r"<[^>]+>", "", desc)
+            text = html.unescape(text)
+            text = re.sub(r"\s+", " ", text).strip()
+            if len(text) > 340:
+                text = text[:340].rsplit(" ", 1)[0] + "…"
+            hot_descs[bgg_id] = text
     awards_raw = json.loads(AWARDS.read_text(encoding="utf-8")) if AWARDS.exists() else {}
     awards_idx = {k: v for k, v in awards_raw.items() if not k.startswith("_")}
     ex_games_cache = {}
@@ -441,6 +459,7 @@ def main():
                 "bggId": h["bggId"], "name": h["name"], "year": h.get("year"),
                 "geekRating": h.get("geekRating"), "thumb": h.get("thumb"),
                 "categories": h.get("categories", []),
+                "description": hot_descs.get(h["bggId"]),
                 "award": award,
             },
             "exhibitors": matched_ex[:5],

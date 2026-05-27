@@ -54,42 +54,56 @@ function syncCard(card: HTMLElement, e: BoothEntry) {
 }
 
 export function wireAllCards() {
-  const cards = Array.from(document.querySelectorAll<HTMLElement>('.card[data-slug]'));
-
+  // Initial sync of every card already in the DOM.
   function syncAll() {
-    for (const card of cards) syncCard(card, store.get(card.dataset.slug!));
+    for (const card of document.querySelectorAll<HTMLElement>('.card[data-slug]')) {
+      syncCard(card, store.get(card.dataset.slug!));
+    }
   }
+  syncAll();
+  store.subscribe(syncAll);
 
-  for (const card of cards) {
+  // Event delegation — handles clicks on ANY card with [data-slug], including
+  // cards cloned into the search-results panel. Listeners are attached once
+  // to document, so clones work without re-wiring.
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const btn = target.closest<HTMLElement>('[data-action]');
+    if (!btn) return;
+    const card = btn.closest<HTMLElement>('.card[data-slug]');
+    if (!card) return;
+    // Don't intercept buttons inside the route plan — that view has its own
+    // delegation (we don't want both to fire).
+    if (btn.closest('#route-plan')) return;
     const slug = card.dataset.slug!;
-    syncCard(card, store.get(slug));
-
-    card.querySelector('[data-action="cycle-plan"]')?.addEventListener('click', () => {
-      store.cyclePlan(slug);
-    });
-    card.querySelector('[data-action="toggle-visit"]')?.addEventListener('click', () => {
-      store.cycleVisit(slug);
-    });
-    card.querySelector('[data-action="toggle-buy"]')?.addEventListener('click', () => {
-      store.toggleBuy(slug);
-    });
-    card.querySelector('[data-action="toggle-skip"]')?.addEventListener('click', () => {
-      store.toggleSkip(slug);
-    });
-    card.querySelector('[data-action="toggle-notes"]')?.addEventListener('click', () => {
+    const action = btn.dataset.action;
+    if (action === 'cycle-plan') store.cyclePlan(slug);
+    else if (action === 'toggle-visit') store.cycleVisit(slug);
+    else if (action === 'toggle-buy') store.toggleBuy(slug);
+    else if (action === 'toggle-skip') store.toggleSkip(slug);
+    else if (action === 'toggle-notes') {
       const area = card.querySelector<HTMLElement>('[data-role="notes"]');
       area?.classList.toggle('hidden');
       if (area && !area.classList.contains('hidden')) {
         area.querySelector<HTMLTextAreaElement>('[data-role="notes-text"]')?.focus();
       }
-    });
-    let notesTimer: ReturnType<typeof setTimeout> | null = null;
-    card.querySelector<HTMLTextAreaElement>('[data-role="notes-text"]')?.addEventListener('input', (e) => {
-      const val = (e.target as HTMLTextAreaElement).value;
-      if (notesTimer) clearTimeout(notesTimer);
-      notesTimer = setTimeout(() => store.setNotes(slug, val), 250);
-    });
-  }
+    }
+  });
 
-  store.subscribe(syncAll);
+  // Notes input delegation (also works on clones).
+  const notesDebouncers = new WeakMap<HTMLTextAreaElement, ReturnType<typeof setTimeout>>();
+  document.addEventListener('input', (e) => {
+    const ta = e.target as HTMLTextAreaElement;
+    if (!ta?.dataset || ta.dataset.role !== 'notes-text') return;
+    if (ta.closest('#route-plan')) return; // route has its own handler
+    const card = ta.closest<HTMLElement>('.card[data-slug]');
+    if (!card) return;
+    const slug = card.dataset.slug!;
+    const prev = notesDebouncers.get(ta);
+    if (prev) clearTimeout(prev);
+    notesDebouncers.set(
+      ta,
+      setTimeout(() => store.setNotes(slug, ta.value), 250)
+    );
+  });
 }

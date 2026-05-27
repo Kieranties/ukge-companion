@@ -36,6 +36,7 @@ interface Stop {
   hall: string;
   stand: string;
   url: string;
+  description: string;
   status?: 'visited' | 'revisit';
   skipped: boolean;
   buy: boolean;
@@ -55,15 +56,21 @@ function findCard(slug: string): HTMLElement | null {
   );
 }
 
-function readCard(slug: string): { name: string; hall: string; stand: string; url: string } | null {
+function readCard(slug: string): { name: string; hall: string; stand: string; url: string; description: string } | null {
   const card = findCard(slug);
   if (!card) return null;
   const a = card.querySelector<HTMLAnchorElement>('.card-title h3 a, .card-title h4 a');
+  // Pull the rendered description text (uses dataset-mirrored value if missing
+  // on the DOM). data-description is lowercased — use the original .card-desc
+  // text for proper casing.
+  const descEl = card.querySelector<HTMLElement>('.card-desc');
+  const description = descEl?.textContent?.trim() || '';
   return {
     name: a?.textContent?.trim() || card.dataset.name || slug,
     hall: card.dataset.hall || '',
     stand: card.dataset.stand || '',
     url: a?.href || '#',
+    description,
   };
 }
 
@@ -85,6 +92,7 @@ function collectStops(): Stop[] {
       hall: info.hall ? info.hall.replace(/\b\w/g, (l) => l.toUpperCase()) : 'Other',
       stand: info.stand,
       url: info.url,
+      description: info.description,
       status: e.status,
       skipped: !!e.skipped,
       buy: !!e.buy,
@@ -126,6 +134,7 @@ function renderStop(s: Stop, dayFilter: string): string {
     ? `<button class="route-day-badge" data-action="cycle-plan" type="button" title="Tap to change plan day — cycles Any → Fri → Sat → Sun → off">${DAY_BADGE[s.day]}</button>`
     : '';
 
+  const descBlock = s.description ? `<div class="route-stop-desc">${esc(s.description)}</div>` : '';
   return `<div class="route-stop ${cls}" data-slug="${esc(s.slug)}">
     <div class="route-stop-main">
       <span class="stop-num">${esc(s.stand || '—')}</span>
@@ -137,6 +146,7 @@ function renderStop(s: Stop, dayFilter: string): string {
         <button class="route-act notes ${hasNotes ? 'on' : ''}" data-action="toggle-notes" type="button" title="Notes">✎</button>
       </span>
     </div>
+    ${descBlock}
     <div class="route-stop-notes hidden" data-role="notes">
       <textarea data-role="notes-text" placeholder="Notes — saved on your device only">${esc(s.notes || '')}</textarea>
     </div>
