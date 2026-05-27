@@ -51,10 +51,9 @@ const cats = (e.categories || []);
 const catsString = cats.join(' · ');
 const whyText = `Matched on ${rec.matched_publishers.length} publisher${rec.matched_publishers.length === 1 ? '' : 's'} credited on ${rec.games.length} of your games: ${rec.matched_publishers.slice(0, 8).join(', ')}${rec.matched_publishers.length > 8 ? '…' : ''}`;
 
-// Build haystack for search index — all the fields a query might match.
 const haystack = [
   e.name,
-  cats,
+  catsString,
   e.description || '',
   e.hall || '',
   e.stand || '',
@@ -63,6 +62,10 @@ const haystack = [
 ]
   .join(' ')
   .toLowerCase();
+// Tag-filter data: pipe-separated for whole-token includes() checks.
+const tagCategories = cats.join('|');
+const tagPublishers = rec.matched_publishers.join('|');
+const tagGames = rec.games.map((g) => g.game.name).join('|');
 const gameNames = rec.games.map((g) => g.game.name).join(' ');
 const pubs = rec.matched_publishers.join(' ');
 ---
@@ -77,6 +80,9 @@ const pubs = rec.matched_publishers.join(' ');
   data-description={(e.description || '').toLowerCase()}
   data-games={gameNames.toLowerCase()}
   data-publishers={pubs.toLowerCase()}
+  data-tag-categories={tagCategories}
+  data-tag-publishers={tagPublishers}
+  data-tag-games={tagGames}
   data-score={rec.score}
   data-games-count={rec.games.length}
   data-plays={rec.total_plays}
@@ -106,7 +112,7 @@ const pubs = rec.matched_publishers.join(' ');
   {cats.length > 0 && (
     <div class="card-cats">
       {cats.map((c) => (
-        <button class="tag-chip" data-filter={c} type="button">{c}</button>
+        <button class="tag-chip" data-tag-kind="category" data-tag-value={c} type="button">{c}</button>
       ))}
     </div>
   )}
@@ -116,11 +122,11 @@ const pubs = rec.matched_publishers.join(' ');
     <ul class="game-list">
       {rec.games.map((g) => (
         <li>
-          <button class="g-name tag-chip" data-filter={g.game.name} type="button">{g.game.name}</button>
+          <button class="g-name tag-chip" data-tag-kind="game" data-tag-value={g.game.name} type="button">{g.game.name}</button>
           <span class="g-year"> ({g.game.year})</span>
           <AwardBadge award={g.game.award} />
           <span class="g-plays">{g.plays}× plays</span>
-          <button class="g-pub tag-chip" data-filter={g.publisher} type="button">via {g.publisher}</button>
+          <button class="g-pub tag-chip" data-tag-kind="publisher" data-tag-value={g.publisher} type="button">via {g.publisher}</button>
           {g.game.geekRating && <span class="g-meta"> · BGG {g.game.geekRating.toFixed(2)}</span>}
         </li>
       ))}

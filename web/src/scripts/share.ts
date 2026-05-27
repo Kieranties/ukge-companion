@@ -5,7 +5,7 @@ interface Slim {
   s?: 'v' | 'r';
   k?: 1;
   b?: 1;
-  d?: 'f' | 's' | 'u';
+  d?: 'a' | 'f' | 's' | 'u';
   n?: string;
 }
 
@@ -15,6 +15,7 @@ function slim(e: BoothEntry): Slim {
   if (e.status === 'revisit') o.s = 'r';
   if (e.skipped) o.k = 1;
   if (e.buy) o.b = 1;
+  if (e.day === 'any') o.d = 'a';
   if (e.day === 'fri') o.d = 'f';
   if (e.day === 'sat') o.d = 's';
   if (e.day === 'sun') o.d = 'u';
@@ -28,6 +29,7 @@ function expand(s: Slim): BoothEntry {
   if (s.s === 'r') e.status = 'revisit';
   if (s.k) e.skipped = true;
   if (s.b) e.buy = true;
+  if (s.d === 'a') e.day = 'any';
   if (s.d === 'f') e.day = 'fri';
   if (s.d === 's') e.day = 'sat';
   if (s.d === 'u') e.day = 'sun';

@@ -47,8 +47,8 @@ function buildMarkdown(): string {
     }
     lines.push('');
   }
-  const dayLabels: Record<string, string> = { fri: 'Friday', sat: 'Saturday', sun: 'Sunday' };
-  for (const d of ['fri', 'sat', 'sun']) {
+  const dayLabels: Record<string, string> = { any: 'Any day', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' };
+  for (const d of ['any', 'fri', 'sat', 'sun']) {
     const items = Object.entries(store.data).filter(([, v]) => v.day === d && !v.skipped);
     if (!items.length) continue;
     lines.push(`## ${dayLabels[d]} plan`);
@@ -61,6 +61,7 @@ function buildMarkdown(): string {
         .filter(Boolean)
         .join(' ');
       lines.push(`- ${tags || '·'} ${i.name} — ${i.hall} ${i.stand}`);
+      if (v.notes && v.notes.trim()) for (const ln of v.notes.split(/\r?\n/)) lines.push(`  - ${ln}`);
     }
     lines.push('');
   }

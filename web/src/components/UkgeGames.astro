@@ -18,7 +18,7 @@ if (!games || games.length === 0) return null as any;
       <li>
         {g.image && <img class="ukge-game-thumb" src={g.image} alt="" loading="lazy" referrerpolicy="no-referrer" />}
         <div class="ukge-game-body">
-          <button class="ukge-game-name tag-chip" data-filter={g.name} type="button">{g.name}</button>
+          <button class="ukge-game-name tag-chip" data-tag-kind="ukge-game" data-tag-value={g.name} type="button">{g.name}</button>
           {g.description && <p class="ukge-game-desc">{g.description}</p>}
         </div>
       </li>

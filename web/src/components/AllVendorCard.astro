@@ -29,6 +29,7 @@ const catsString = cats.join(' · ');
   data-stand={e.stand || ''}
   data-categories={catsString.toLowerCase()}
   data-description={(e.description || '').toLowerCase()}
+  data-tag-categories={cats.join('|')}
 >
   <header class="card-head">
     <Logo name={e.name} logo={e.logo} />
@@ -42,7 +43,7 @@ const catsString = cats.join(' · ');
   </header>
   {cats.length > 0 && (
     <div class="card-cats">
-      {cats.map((c) => <button class="tag-chip" data-filter={c} type="button">{c}</button>)}
+      {cats.map((c) => <button class="tag-chip" data-tag-kind="category" data-tag-value={c} type="button">{c}</button>)}
     </div>
   )}
   {e.description && <p class="card-desc">{e.description}</p>}

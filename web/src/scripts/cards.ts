@@ -2,12 +2,20 @@
 // to the central state store.
 import { store, type BoothEntry } from './state';
 
+const PLAN_LABEL: Record<string, string> = {
+  any: 'Planned · Any day',
+  fri: '🗓 Friday',
+  sat: '🗓 Saturday',
+  sun: '🗓 Sunday',
+};
+
 function syncCard(card: HTMLElement, e: BoothEntry) {
   const status = e.status;
   card.classList.toggle('visited', status === 'visited');
   card.classList.toggle('revisit', status === 'revisit');
   card.classList.toggle('skipped', !!e.skipped);
   card.classList.toggle('buying', !!e.buy);
+  card.classList.toggle('planned', !!e.day);
   card.dataset.status = status ?? '';
   card.dataset.skipped = e.skipped ? '1' : '0';
   card.dataset.buy = e.buy ? '1' : '0';
@@ -30,8 +38,14 @@ function syncCard(card: HTMLElement, e: BoothEntry) {
     s.textContent = e.skipped ? 'Skipped' : 'Skip';
     s.classList.toggle('on', !!e.skipped);
   }
-  for (const chip of card.querySelectorAll<HTMLButtonElement>('.day-chip')) {
-    chip.classList.toggle('active', chip.dataset.day === e.day);
+  const p = card.querySelector<HTMLButtonElement>('[data-action="cycle-plan"]');
+  if (p) {
+    p.textContent = e.day ? PLAN_LABEL[e.day] : '+ Add to plan';
+    p.classList.toggle('on', !!e.day);
+    p.classList.toggle('plan-any', e.day === 'any');
+    p.classList.toggle('plan-fri', e.day === 'fri');
+    p.classList.toggle('plan-sat', e.day === 'sat');
+    p.classList.toggle('plan-sun', e.day === 'sun');
   }
   const notesBtn = card.querySelector<HTMLButtonElement>('[data-action="toggle-notes"]');
   if (notesBtn) notesBtn.classList.toggle('has-notes', !!(e.notes && e.notes.trim()));
@@ -50,6 +64,9 @@ export function wireAllCards() {
     const slug = card.dataset.slug!;
     syncCard(card, store.get(slug));
 
+    card.querySelector('[data-action="cycle-plan"]')?.addEventListener('click', () => {
+      store.cyclePlan(slug);
+    });
     card.querySelector('[data-action="toggle-visit"]')?.addEventListener('click', () => {
       store.cycleVisit(slug);
     });
@@ -66,12 +83,6 @@ export function wireAllCards() {
         area.querySelector<HTMLTextAreaElement>('[data-role="notes-text"]')?.focus();
       }
     });
-    for (const chip of card.querySelectorAll<HTMLButtonElement>('.day-chip')) {
-      chip.addEventListener('click', () => {
-        const day = chip.dataset.day as 'fri' | 'sat' | 'sun';
-        store.setDay(slug, day);
-      });
-    }
     let notesTimer: ReturnType<typeof setTimeout> | null = null;
     card.querySelector<HTMLTextAreaElement>('[data-role="notes-text"]')?.addEventListener('input', (e) => {
       const val = (e.target as HTMLTextAreaElement).value;

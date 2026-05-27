@@ -1,6 +1,7 @@
-// Visibility filter: status pill + day pill + hide-skipped toggle.
+// Visibility filter: status pill + day pill + hide-skipped toggle + active tag.
 // Works against any .card[data-slug] in the DOM, regardless of which tab.
 import { store } from './state';
+import { cardMatchesActiveTag, onTagChange } from './tags';
 
 type StatusFilter = 'all' | 'unvisited' | 'visited' | 'revisit' | 'buy';
 type DayFilter = 'any' | 'fri' | 'sat' | 'sun';
@@ -24,7 +25,12 @@ function passes(card: HTMLElement): boolean {
   if (filterState.status === 'visited' && e.status !== 'visited') return false;
   if (filterState.status === 'revisit' && e.status !== 'revisit') return false;
   if (filterState.status === 'buy' && !e.buy) return false;
-  if (filterState.day !== 'any' && e.day !== filterState.day) return false;
+  // Day filter on cards: 'any' shows everything; a specific day shows
+  // only stands assigned to that day OR planned 'any day'.
+  if (filterState.day !== 'any') {
+    if (e.day !== filterState.day && e.day !== 'any') return false;
+  }
+  if (!cardMatchesActiveTag(card)) return false;
   return true;
 }
 
@@ -61,5 +67,6 @@ export function wireFilters() {
 
   // Re-apply when state changes so visited/buy toggles update visibility.
   store.subscribe(applyFilters);
+  onTagChange(applyFilters);
   applyFilters();
 }

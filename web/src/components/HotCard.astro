@@ -52,7 +52,7 @@ const haystack = [
       </div>
     </header>
     <div class="card-cats" style="margin-top:6px">
-      {cats.map((c) => <button class="tag-chip" data-filter={c} type="button">{c}</button>)}
+      {cats.map((c) => <button class="tag-chip" data-tag-kind="category" data-tag-value={c} type="button">{c}</button>)}
       <AwardBadge award={g.award} />
     </div>
     <div class="hot-venues-label">Published by:</div>

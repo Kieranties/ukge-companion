@@ -1,11 +1,17 @@
 // Local plan state — persisted to localStorage. One source of truth for
 // visited/buy/skip/day/notes across every booth card on the page.
 // All values are optional; absence means "default".
+//
+// `day` is the plan state. Possible values:
+//   undefined  – not planned. Booth doesn't appear in the route.
+//   'any'      – planned but no specific day. Appears in the route every day.
+//   'fri' | 'sat' | 'sun' – planned for that day.
+export type PlanDay = 'any' | 'fri' | 'sat' | 'sun';
 export interface BoothEntry {
   status?: 'visited' | 'revisit';
   skipped?: boolean;
   buy?: boolean;
-  day?: 'fri' | 'sat' | 'sun';
+  day?: PlanDay;
   notes?: string;
   visitedAt?: string;
   revisitAt?: string;
@@ -68,10 +74,26 @@ class StateStore {
     else this.update(slug, { skipped: true, skippedAt: new Date().toISOString(), status: undefined, buy: undefined });
   }
 
-  setDay(slug: string, day: 'fri' | 'sat' | 'sun' | undefined): void {
+  setDay(slug: string, day: PlanDay | undefined): void {
     const e = this.get(slug);
     if (e.day === day) this.update(slug, { day: undefined, dayAt: undefined });
     else this.update(slug, { day, dayAt: new Date().toISOString() });
+  }
+
+  /**
+   * Cycle through plan states for the booth's "Add to plan" button:
+   *   undefined  → 'any'  → 'fri' → 'sat' → 'sun' → undefined
+   */
+  cyclePlan(slug: string): void {
+    const e = this.get(slug);
+    const order: (PlanDay | undefined)[] = [undefined, 'any', 'fri', 'sat', 'sun'];
+    const idx = order.indexOf(e.day);
+    const next = order[(idx + 1) % order.length];
+    if (next === undefined) {
+      this.update(slug, { day: undefined, dayAt: undefined });
+    } else {
+      this.update(slug, { day: next, dayAt: new Date().toISOString() });
+    }
   }
 
   setNotes(slug: string, notes: string): void {

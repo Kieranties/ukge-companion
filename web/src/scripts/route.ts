@@ -68,23 +68,14 @@ function readCard(slug: string): { name: string; hall: string; stand: string; ur
 }
 
 function collectStops(): Stop[] {
-  // Start with every recommendation slug (always part of the plan even if
-  // untouched), then add any other slug the user has state for.
-  const slugs = new Set<string>();
-  for (const card of document.querySelectorAll<HTMLElement>(
-    '.panel[data-panel="for-you"] .card[data-slug]'
-  )) {
-    slugs.add(card.dataset.slug!);
-  }
-  for (const slug of Object.keys(store.data)) {
-    slugs.add(slug);
-  }
-
+  // The route is the user's *plan* — only stands they've explicitly added to
+  // it (entry.day set to anything) appear here. No more "everything's in the
+  // route by default". Mark a stand on any card to add it.
   const stops: Stop[] = [];
-  for (const slug of slugs) {
+  for (const [slug, e] of Object.entries(store.data)) {
+    if (!e.day) continue;
     const info = readCard(slug);
-    if (!info) continue; // Stand removed from the listing — skip silently.
-    const e = store.get(slug);
+    if (!info) continue;
     const fromRec = !!document.querySelector(
       `.panel[data-panel="for-you"] .card[data-slug="${CSS.escape(slug)}"]`
     );
@@ -112,6 +103,13 @@ function readDayFilter(): string {
   );
 }
 
+const DAY_BADGE: Record<string, string> = {
+  any: 'Any day',
+  fri: 'Fri',
+  sat: 'Sat',
+  sun: 'Sun',
+};
+
 function renderStop(s: Stop, dayFilter: string): string {
   const cls = [
     s.status === 'visited' ? 'done' : '',
@@ -123,22 +121,15 @@ function renderStop(s: Stop, dayFilter: string): string {
     .join(' ');
 
   const visitLabel = s.status === 'revisit' ? '★' : s.status === 'visited' ? '✓' : 'Mark';
-  const dayChips = dayFilter === 'any'
-    ? `<div class="route-stop-days">
-         ${(['fri', 'sat', 'sun'] as const)
-           .map(
-             (d) =>
-               `<button class="day-chip ${s.day === d ? 'active' : ''}" data-action="set-day" data-day="${d}" type="button">${DAY_LABEL[d]}</button>`
-           )
-           .join('')}
-       </div>`
-    : '';
   const hasNotes = !!(s.notes && s.notes.trim());
+  const dayBadge = s.day
+    ? `<button class="route-day-badge" data-action="cycle-plan" type="button" title="Tap to change plan day — cycles Any → Fri → Sat → Sun → off">${DAY_BADGE[s.day]}</button>`
+    : '';
 
   return `<div class="route-stop ${cls}" data-slug="${esc(s.slug)}">
     <div class="route-stop-main">
       <span class="stop-num">${esc(s.stand || '—')}</span>
-      <span class="stop-name"><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a></span>
+      <span class="stop-name"><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a>${dayBadge}</span>
       <span class="stop-actions">
         <button class="route-act visit ${s.status === 'visited' ? 'on' : ''} ${s.status === 'revisit' ? 'revisit' : ''}" data-action="toggle-visit" type="button" title="Mark visited / revisit">${visitLabel}</button>
         <button class="route-act buy ${s.buy ? 'on' : ''}" data-action="toggle-buy" type="button" title="Buy from this stand">🛒</button>
@@ -146,7 +137,6 @@ function renderStop(s: Stop, dayFilter: string): string {
         <button class="route-act notes ${hasNotes ? 'on' : ''}" data-action="toggle-notes" type="button" title="Notes">✎</button>
       </span>
     </div>
-    ${dayChips}
     <div class="route-stop-notes hidden" data-role="notes">
       <textarea data-role="notes-text" placeholder="Notes — saved on your device only">${esc(s.notes || '')}</textarea>
     </div>
@@ -162,7 +152,9 @@ export function buildRoute() {
       const hideSkipped = document.getElementById('hide-skipped')?.classList.contains('active');
       if (hideSkipped) return false;
     }
-    if (dayFilter !== 'any' && s.day !== dayFilter) return false;
+    // 'any'-day stands are flexible — they appear under every specific day
+    // filter too. A specific day filter only excludes other specific days.
+    if (dayFilter !== 'any' && s.day !== dayFilter && s.day !== 'any') return false;
     return true;
   });
 
@@ -178,11 +170,11 @@ export function buildRoute() {
   if (halls.length === 0) {
     let msg: string;
     if (dayFilter !== 'any') {
-      msg = `No stands assigned to ${DAY_LABEL[dayFilter]}. Use the <span style="font-family:var(--font-sans);font-size:11px;background:var(--panel-2);padding:1px 6px;border-radius:6px">Day</span> chips on any card to plan one in.`;
+      msg = `Nothing planned for <strong>${DAY_LABEL[dayFilter]}</strong>. Tap <em>Add to plan</em> on any exhibitor card and cycle to ${DAY_LABEL[dayFilter]} to fill this list.`;
     } else {
-      msg = 'No stands yet — mark some as visited or assign a day to start building your route.';
+      msg = `Your route is empty. Tap <em>+ Add to plan</em> on any exhibitor card (in For you, Discover, or Browse all) to add them here. The button cycles: Any day → Friday → Saturday → Sunday.`;
     }
-    root.innerHTML = `<p style="color:var(--ink-dim); padding: 18px 0">${msg}</p>`;
+    root.innerHTML = `<div class="route-empty">${msg}</div>`;
     return;
   }
 
@@ -215,14 +207,13 @@ function wireRouteInteractions() {
     if (action === 'toggle-visit') store.cycleVisit(slug);
     else if (action === 'toggle-buy') store.toggleBuy(slug);
     else if (action === 'toggle-skip') store.toggleSkip(slug);
+    else if (action === 'cycle-plan') store.cyclePlan(slug);
     else if (action === 'toggle-notes') {
       const area = stop!.querySelector<HTMLElement>('[data-role="notes"]');
       area?.classList.toggle('hidden');
       if (area && !area.classList.contains('hidden')) {
         area.querySelector<HTMLTextAreaElement>('[data-role="notes-text"]')?.focus();
       }
-    } else if (action === 'set-day') {
-      store.setDay(slug, btn.dataset.day as 'fri' | 'sat' | 'sun');
     }
   });
   // Debounced notes input. Event delegation so we don't re-bind on rebuild.

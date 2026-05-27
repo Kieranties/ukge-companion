@@ -38,6 +38,7 @@ const haystack = [e.name, cats, e.description || '', e.hall || '', e.stand || ''
   data-stand={e.stand || ''}
   data-categories={catsString.toLowerCase()}
   data-description={(e.description || '').toLowerCase()}
+  data-tag-categories={cats.join('|')}
   data-score={rec.score}
 >
   <header class="card-head">
@@ -53,13 +54,13 @@ const haystack = [e.name, cats, e.description || '', e.hall || '', e.stand || ''
   </header>
   {cats.length > 0 && (
     <div class="card-cats">
-      {cats.map((c) => <button class="tag-chip" data-filter={c} type="button">{c}</button>)}
+      {cats.map((c) => <button class="tag-chip" data-tag-kind="category" data-tag-value={c} type="button">{c}</button>)}
     </div>
   )}
   {e.description && <p class="card-desc">{e.description}</p>}
   <div class="card-cats" style="margin-top:8px">
     <span class="label">matched on:</span>
-    {rec.matched_keywords.map((k) => <button class="tag-chip" data-filter={k} type="button">{k}</button>)}
+    {rec.matched_keywords.map((k) => <span class="tag-chip" style="cursor:default" title="Shared category/mechanic keyword">{k}</span>)}
   </div>
   <UkgeGames games={e.ukge_games} exhibitorName={e.name} />
   <BoothTools />
