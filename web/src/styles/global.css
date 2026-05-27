@@ -193,14 +193,16 @@ a:hover {
   padding: 8px 0;
 }
 
-/* Search input + filter rows */
+/* Search row — input + collapsible Filters trigger. */
 .search-row {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr auto;
   gap: 8px;
+  align-items: center;
 }
 .search-row > input {
   width: 100%;
+  min-width: 0;
   background: var(--panel);
   color: var(--ink);
   border: 1px solid var(--line);
@@ -214,11 +216,33 @@ a:hover {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
-@media (min-width: 600px) {
-  .search-row {
-    grid-template-columns: 1fr auto;
-    align-items: center;
-  }
+.filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 8px 14px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+}
+.filter-toggle .filter-count {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0 7px;
+  font-size: 11px;
+  min-width: 18px;
+  text-align: center;
+  line-height: 18px;
+}
+.filter-toggle .filter-count.hidden {
+  display: none;
+}
+.filter-toggle[aria-expanded='true'] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .pill-row {
   display: flex;
@@ -262,6 +286,29 @@ a:hover {
 }
 .day-row {
   margin-top: 6px;
+}
+
+/* Filter tray — collapsed on mobile by default, always visible on desktop.
+ * Uses max-height transition for a smooth slide without measuring content. */
+.filter-tray {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 250ms ease-out, padding 250ms ease-out;
+}
+.filter-tray[data-open='true'] {
+  max-height: 500px;
+  padding-top: 8px;
+}
+@media (min-width: 760px) {
+  /* Desktop: tray is always open + the toggle button is hidden. */
+  .filter-tray {
+    max-height: none;
+    overflow: visible;
+    padding-top: 8px;
+  }
+  .filter-toggle {
+    display: none;
+  }
 }
 
 /* ---------- Tabs --------------------------------------------------------- */
@@ -683,7 +730,8 @@ body[data-searching='1'] #tab-bar {
   gap: 8px;
   flex-wrap: wrap;
 }
-.card-loc .stand {
+.card-loc .stand,
+a.stand {
   background: var(--panel-2);
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -692,6 +740,18 @@ body[data-searching='1'] #tab-bar {
   letter-spacing: 0.04em;
   color: var(--ink-strong);
   font-family: var(--font-sans);
+  text-decoration: none;
+}
+a.stand:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.route-stop a.stop-num {
+  text-decoration: none;
+}
+.route-stop a.stop-num:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .card-stats {
   grid-column: 1 / -1;

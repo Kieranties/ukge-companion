@@ -8,6 +8,7 @@ import { wireShare } from './share';
 import { wireExport } from './export';
 import { wirePWA } from './pwa';
 import { wireTagClicks } from './tags';
+import { wireFilterTray } from './filter-tray';
 
 wireTheme();
 wireAllCards();
@@ -16,6 +17,7 @@ wireTabs();
 wireFilters();
 wireRoute();
 wireSearch();
+wireFilterTray();
 wireShare();
 wireExport();
 wirePWA();

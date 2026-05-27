@@ -60,12 +60,18 @@ const haystack = [
     <div class="hot-venues-label">Published by:</div>
     {hot.exhibitors.slice(0, 3).map((me) => {
       const u = `https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/${me.exhibitor.slug}/`;
-      const loc = [me.exhibitor.hall, me.exhibitor.stand].filter(Boolean).join(' ');
+      const mapU = me.exhibitor.stand ? `https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/map/#${me.exhibitor.stand}` : null;
       return (
-        <a class="hot-venue" href={u} target="_blank" rel="noopener">
-          <span class="ex-name">{me.exhibitor.name}</span>
-          <span class="ex-loc-tag">{loc}</span>
-        </a>
+        <div class="hot-venue">
+          <a class="ex-name" href={u} target="_blank" rel="noopener">{me.exhibitor.name}</a>
+          {mapU ? (
+            <a class="ex-loc-tag stand" href={mapU} target="_blank" rel="noopener" title={`Find ${me.exhibitor.stand} on the UKGE map`}>
+              {me.exhibitor.hall} {me.exhibitor.stand}
+            </a>
+          ) : (
+            <span class="ex-loc-tag">{me.exhibitor.hall}</span>
+          )}
+        </div>
       );
     })}
   </div>

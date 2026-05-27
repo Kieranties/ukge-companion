@@ -135,9 +135,12 @@ function renderStop(s: Stop, dayFilter: string): string {
     : '';
 
   const descBlock = s.description ? `<div class="route-stop-desc">${esc(s.description)}</div>` : '';
+  const standCell = s.stand
+    ? `<a class="stop-num" href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/map/#${esc(s.stand)}" target="_blank" rel="noopener" title="Find ${esc(s.stand)} on the UKGE map">${esc(s.stand)}</a>`
+    : `<span class="stop-num">—</span>`;
   return `<div class="route-stop ${cls}" data-slug="${esc(s.slug)}">
     <div class="route-stop-main">
-      <span class="stop-num">${esc(s.stand || '—')}</span>
+      ${standCell}
       <span class="stop-name"><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a>${dayBadge}</span>
       <span class="stop-actions">
         <button class="route-act visit ${s.status === 'visited' ? 'on' : ''} ${s.status === 'revisit' ? 'revisit' : ''}" data-action="toggle-visit" type="button" title="Mark visited / revisit">${visitLabel}</button>

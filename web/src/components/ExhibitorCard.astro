@@ -102,7 +102,9 @@ const pubs = rec.matched_publishers.join(' ');
       </h3>
       <div class="card-loc">
         <span class="hall">{e.hall}</span>
-        <span class="stand">{e.stand}</span>
+        {e.stand && (
+          <a class="stand" href={`https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/map/#${e.stand}`} target="_blank" rel="noopener" title={`Find ${e.stand} on the UKGE map`}>{e.stand}</a>
+        )}
       </div>
     </div>
     <div class="card-stats">
