@@ -1317,16 +1317,19 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
 .route-empty strong {
   color: var(--ink-strong);
 }
+/* Reference pill in the empty-route message — styled to match the actual
+ * "+ Add to plan" button on the cards so the user recognises it. */
 .route-empty em {
   font-style: normal;
-  background: var(--accent-2-soft);
-  color: var(--accent-2);
-  border: 1px solid var(--accent-2);
-  border-radius: 6px;
-  padding: 1px 8px;
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
+  background: var(--panel-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 3px 9px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
 }
 .route-day-badge {
   display: inline-block;
@@ -1395,6 +1398,9 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
 .map-links a:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+.brand-icon {
+  flex: 0 0 auto;
 }
 
 .hours-table {
