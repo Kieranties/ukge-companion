@@ -3429,11 +3429,16 @@ Add some gold to you collection!!</p>
 
 <section>
   <h2>Hall map</h2>
-  <p class="lede">The official UKGE hall map. If the embed is blocked by their site, the link below opens it directly.</p>
-  <div class="map-wrap">
-    <iframe id="ukge-map" src="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/map/" title="UKGE 2026 exhibitor map" loading="lazy"></iframe>
-    <div class="map-fallback" id="map-fallback" style="display:none">
-      Couldn't embed the map. Open it directly: <a href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/map/" target="_blank" rel="noopener">ukgamesexpo.co.uk exhibitor map</a>.
+  <p class="lede">
+    UKGE's own map blocks embedding (their site sends an X-Frame-Options header), so the button opens it in a new tab.
+    Cross-reference stand numbers from the cards above on the map view.
+  </p>
+  <div class="map-wrap" style="padding: 24px; text-align: center;">
+    <a class="av-toggle" href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/map/" target="_blank" rel="noopener" style="display:inline-flex; gap:10px; align-items:center; text-decoration:none">
+      <span style="font-size:18px">🗺</span> Open official UKGE map
+    </a>
+    <div style="margin-top: 16px; color: var(--ink-dim); font-size: 13px;">
+      Halls used in 2026: Hall One · Hall Two · Hall Three · Hall Three A · Hall Four · Hall Five · Toy Fair
     </div>
   </div>
 </section>
