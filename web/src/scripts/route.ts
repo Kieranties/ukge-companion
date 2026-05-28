@@ -139,11 +139,12 @@ function parseTimeKey(t: string): [number, number] {
 
 function collectAttendingEvents(): RouteEvent[] {
   const out: RouteEvent[] = [];
-  for (const [id, e] of Object.entries(store.events)) {
-    if (!e.attending) continue;
+  for (const id of Object.keys(store.events)) {
+    if (!store.isAttendingAny(id)) continue;
     const card = document.querySelector<HTMLElement>(`.event-card[data-event-id="${CSS.escape(id)}"]`);
     if (!card) continue;
     const dayCodes = (card.dataset.days || '').split(/\s+/).filter(Boolean);
+    const e = store.getEvent(id);
     out.push({
       id,
       title: card.dataset.title || '',
@@ -160,18 +161,22 @@ function collectAttendingEvents(): RouteEvent[] {
   return out;
 }
 
-function renderRouteEvent(e: RouteEvent): string {
+function renderRouteEvent(e: RouteEvent, dayCode: string): string {
   const exhibitorChip = e.exhibitorSlug
     ? `<a class="route-event-stand" href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/${esc(e.exhibitorSlug)}/" target="_blank" rel="noopener" data-action="open-vendor-card" data-vendor-slug="${esc(e.exhibitorSlug)}" title="Open ${esc(e.exhibitorName)} in app">🏪 ${esc(e.exhibitorName)}</a>`
     : '';
   const hasNotes = !!(e.notes && e.notes.trim());
-  return `<div class="route-event-stop" data-event-id="${esc(e.id)}">
+  // The remove button unticks just THIS day — Saturday and Sunday stay
+  // pinned if the user is also attending those. data-days carries the
+  // full event-day list so the store can promote legacy attending: true.
+  const allDays = e.days.join(' ');
+  return `<div class="route-event-stop" data-event-id="${esc(e.id)}" data-days="${esc(allDays)}">
     <div class="route-event-main">
       <span class="route-event-time">${esc(e.time || '—')}</span>
       <span class="route-event-title"><a href="${esc(e.url || '#')}" target="_blank" rel="noopener">${esc(e.title)}</a></span>
       <span class="route-event-actions">
         <button class="route-act notes ${hasNotes ? 'on' : ''}" data-action="toggle-event-notes" type="button" title="Notes">✎</button>
-        <button class="route-act unattend" data-action="toggle-attending" type="button" title="Remove from plan">✕</button>
+        <button class="route-act unattend" data-action="toggle-attending-day" data-day="${esc(dayCode)}" type="button" title="Remove from this day">✕</button>
       </span>
     </div>
     ${exhibitorChip ? `<div class="route-event-meta">${exhibitorChip}<span class="route-event-cat">${esc(e.category)}</span></div>` : `<div class="route-event-meta"><span class="route-event-cat">${esc(e.category)}</span></div>`}
@@ -182,13 +187,15 @@ function renderRouteEvent(e: RouteEvent): string {
 }
 
 function renderEventsForDay(events: RouteEvent[], dayCode: string): string {
+  // Pin only the events the user is actually attending ON this day. Honours
+  // the legacy attending: true (all days) via store.isAttendingDay.
   const items = events
-    .filter((e) => e.days.includes(dayCode))
+    .filter((e) => e.days.includes(dayCode) && store.isAttendingDay(e.id, dayCode))
     .sort((a, b) => a.timeKey[0] - b.timeKey[0] || a.timeKey[1] - b.timeKey[1] || a.title.localeCompare(b.title));
   if (items.length === 0) return '';
   return `<div class="route-events">
     <h3>${DAY_FULL[dayCode]} events <span class="hall-count">${items.length} pinned</span></h3>
-    ${items.map(renderRouteEvent).join('')}
+    ${items.map((e) => renderRouteEvent(e, dayCode)).join('')}
   </div>`;
 }
 

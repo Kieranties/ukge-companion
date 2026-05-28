@@ -35,6 +35,9 @@ const KEY = 'ukge-companion-state-v1';
 const EVENT_KEY = 'ukge-companion-events-v1';
 
 export interface EventEntry {
+  /** Day codes ("fri" | "sat" | "sun") the user is attending. Empty/missing = not going. */
+  attendingDays?: string[];
+  /** Legacy: pre-per-day flag. Treated as "attending every day this event runs". */
   attending?: boolean;
   attendingAt?: string;
   notes?: string;
@@ -212,10 +215,41 @@ class StateStore {
     this.persist();
   }
 
-  toggleAttending(id: string): void {
+  /** Is the user attending this event on the given day code? Honours the
+   *  legacy `attending: true` flag as "yes on every day this event runs",
+   *  so old localStorage entries keep behaving. */
+  isAttendingDay(id: string, day: string): boolean {
     const e = this.getEvent(id);
-    if (e.attending) this.updateEvent(id, { attending: undefined, attendingAt: undefined });
-    else this.updateEvent(id, { attending: true, attendingAt: new Date().toISOString() });
+    if (e.attendingDays && e.attendingDays.includes(day)) return true;
+    if (e.attending) return true;
+    return false;
+  }
+
+  /** True if the user is attending any day of this event. */
+  isAttendingAny(id: string): boolean {
+    const e = this.getEvent(id);
+    if (e.attendingDays && e.attendingDays.length > 0) return true;
+    if (e.attending) return true;
+    return false;
+  }
+
+  /** Toggle a single day's attendance. `allEventDays` is supplied by the
+   *  caller (it reads them off the rendered card) so that promoting an old
+   *  `attending: true` entry first expands to "all days", then unticks the
+   *  requested one — matching the mental model "I was going to all three;
+   *  now skip Friday." */
+  toggleAttendingDay(id: string, day: string, allEventDays: string[]): void {
+    const e = this.getEvent(id);
+    let cur: string[];
+    if (e.attendingDays) cur = [...e.attendingDays];
+    else if (e.attending) cur = [...allEventDays];
+    else cur = [];
+    const next = cur.includes(day) ? cur.filter((d) => d !== day) : [...cur, day];
+    this.updateEvent(id, {
+      attendingDays: next.length ? next : undefined,
+      attending: undefined, // drop legacy once the user touches it
+      attendingAt: e.attendingAt || new Date().toISOString(),
+    });
   }
 
   setEventNotes(id: string, notes: string): void {

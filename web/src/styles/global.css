@@ -2225,11 +2225,33 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   display: flex;
   gap: 6px;
   margin-top: 2px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 .event-tools .attend-btn.on {
   background: var(--green);
   color: #1a1a2e;
   border-color: var(--green);
+}
+.attend-days {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.attend-label {
+  font-size: 11px;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+.attend-day-btn {
+  min-width: 44px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 .event-card.attending {
   border-color: var(--green);

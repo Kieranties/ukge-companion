@@ -69,11 +69,18 @@ function syncEventCard(card: HTMLElement) {
   // controls — let it own its DOM end-to-end.
   if (card.closest('#route-plan')) return;
   const e = store.getEvent(id);
-  card.classList.toggle('attending', !!e.attending);
-  const btn = card.querySelector<HTMLButtonElement>('[data-action="toggle-attending"]');
-  if (btn) {
-    btn.textContent = e.attending ? '✓ Going' : 'Going';
-    btn.classList.toggle('on', !!e.attending);
+  const anyDay = store.isAttendingAny(id);
+  card.classList.toggle('attending', anyDay);
+  // Per-day chips: each carries data-day; the single-day variant uses the
+  // event's only day. Light up only the days the user has ticked.
+  for (const btn of card.querySelectorAll<HTMLButtonElement>('[data-action="toggle-attending-day"]')) {
+    const day = btn.dataset.day || '';
+    const on = store.isAttendingDay(id, day);
+    btn.classList.toggle('on', on);
+    // Single-button variant flips its label between Going / ✓ Going.
+    if (!btn.classList.contains('attend-day-btn')) {
+      btn.textContent = on ? '✓ Going' : 'Going';
+    }
   }
   const notesBtn = card.querySelector<HTMLButtonElement>('[data-action="toggle-event-notes"]');
   if (notesBtn) notesBtn.classList.toggle('has-notes', !!(e.notes && e.notes.trim()));
@@ -120,8 +127,13 @@ export function wireEvents() {
     if (!card) return;
     const id = card.dataset.eventId!;
     const action = btn.dataset.action;
-    if (action === 'toggle-attending') {
-      store.toggleAttending(id);
+    if (action === 'toggle-attending-day') {
+      // The chip's data-day says which day to flip; the card's data-days
+      // is the event's full day list (needed when promoting legacy
+      // attending=true entries to an explicit list before toggling).
+      const day = btn.dataset.day || '';
+      const allDays = (card.dataset.days || '').split(/\s+/).filter(Boolean);
+      if (day) store.toggleAttendingDay(id, day, allDays);
     } else if (action === 'toggle-event-notes') {
       const area = card.querySelector<HTMLElement>('[data-role="event-notes"]');
       area?.classList.toggle('hidden');
