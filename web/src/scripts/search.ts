@@ -25,7 +25,7 @@ const FIELD_BOOSTS: Record<string, number> = {
 interface SearchDoc {
   id: string;
   slug: string;
-  kind: 'recommendation' | 'discovery' | 'all-vendor' | 'hot-game';
+  kind: 'recommendation' | 'discovery' | 'all-vendor' | 'hot-game' | 'event';
   name: string;
   hall: string;
   stand: string;
@@ -64,6 +64,30 @@ export function indexFromPage() {
       cardSelector: `.panel[data-panel="${panel}"] .card[data-slug="${slug}"][data-kind="${kind}"]`,
     });
   }
+  // Index event cards too. Events have a different shape but we map them
+  // onto the same fields MiniSearch already weighs: name = title,
+  // publishers = exhibitor name (the most likely free-text match),
+  // categories = event category (Seminars/Demo-on-stand/…),
+  // description = subtitle text. Hall/stand stay empty.
+  for (const card of document.querySelectorAll<HTMLElement>('.event-card[data-event-id]')) {
+    const id = card.dataset.eventId!;
+    docs.push({
+      id: `event:${id}`,
+      slug: id,
+      kind: 'event',
+      name: (card.dataset.title || card.dataset.name || '').toLowerCase(),
+      hall: '',
+      stand: '',
+      description: card.dataset.haystack || '',
+      categories: (card.dataset.category || '').toLowerCase(),
+      games: '',
+      ukgeGames: '',
+      publishers: (card.dataset.exhibitorName || '').toLowerCase(),
+      award: '',
+      panel: 'events',
+      cardSelector: `.panel[data-panel="events"] .event-card[data-event-id="${id}"]`,
+    });
+  }
 
   index = new MiniSearch<SearchDoc>({
     fields: ALL_FIELDS,
@@ -81,6 +105,7 @@ export function indexFromPage() {
 const KIND_LABELS: Record<SearchDoc['kind'], string> = {
   recommendation: 'Top recommendations',
   'hot-game': 'Games to look out for',
+  event: 'Events',
   discovery: 'Discovery',
   'all-vendor': 'All exhibitors',
 };
@@ -117,18 +142,23 @@ function renderResults(q: string) {
     return;
   }
   let html = `<div class="search-summary"><strong>${results.length}</strong> result${results.length === 1 ? '' : 's'} for <strong>${escapeHtml(q)}</strong></div>`;
-  const order: SearchDoc['kind'][] = ['recommendation', 'hot-game', 'discovery', 'all-vendor'];
+  const order: SearchDoc['kind'][] = ['recommendation', 'hot-game', 'event', 'discovery', 'all-vendor'];
   for (const kind of order) {
     const items = groups[kind];
     if (!items || items.length === 0) continue;
     html += `<div class="search-section"><h3>${KIND_LABELS[kind]} <span class="count">${items.length}</span></h3>`;
-    html += '<div class="card-grid two-up">';
+    // Events render in their own grid; exhibitor kinds use the standard 2-up grid.
+    const gridClass = kind === 'event' ? 'event-grid' : 'card-grid two-up';
+    html += `<div class="${gridClass}">`;
     for (const r of items.slice(0, 20)) {
       const original = document.querySelector(r.cardSelector);
       if (!original) continue;
       const clone = original.cloneNode(true) as HTMLElement;
       clone.removeAttribute('id');
-      const titleA = clone.querySelector('.card-title h3 a, .card-title h4 a');
+      // Title selector differs between exhibitor and event cards.
+      const titleA =
+        clone.querySelector('.card-title h3 a, .card-title h4 a') ||
+        clone.querySelector('.event-title a');
       if (titleA && q.trim()) titleA.innerHTML = highlightMatch(titleA.textContent || '', q);
       html += clone.outerHTML;
     }
