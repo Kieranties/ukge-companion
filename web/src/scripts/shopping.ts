@@ -7,9 +7,37 @@
 // entries). Interaction goes through a single delegated click + submit
 // handler at the panel root.
 import { store, type BoothEntry, type BuyItem } from './state';
+import { parsePrice, formatPrice } from './cards';
 
 function esc(s: string): string {
   return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+}
+
+function priceInputValue(price?: number): string {
+  return typeof price === 'number' ? price.toFixed(2) : '';
+}
+
+interface BoothTotals {
+  planned: number;
+  spent: number;
+  unpriced: number;
+  totalItems: number;
+  unpurchasedPriced: number;
+}
+
+function totalsFor(items: BuyItem[] | undefined): BoothTotals {
+  const t: BoothTotals = { planned: 0, spent: 0, unpriced: 0, totalItems: 0, unpurchasedPriced: 0 };
+  for (const it of items || []) {
+    t.totalItems++;
+    if (typeof it.price === 'number') {
+      t.planned += it.price;
+      if (it.purchased) t.spent += it.price;
+      else t.unpurchasedPriced += it.price;
+    } else {
+      t.unpriced++;
+    }
+  }
+  return t;
 }
 
 interface BoothInfo {
@@ -42,13 +70,27 @@ function renderItems(items: BuyItem[] | undefined, slug: string): string {
       if (!!a.it.purchased === !!b.it.purchased) return 0;
       return a.it.purchased ? 1 : -1;
     });
+  const t = totalsFor(items);
+  const subtotalBits: string[] = [];
+  if (t.planned > 0) {
+    if (t.spent > 0 && t.spent < t.planned) {
+      subtotalBits.push(`${formatPrice(t.spent)} spent · ${formatPrice(t.planned - t.spent)} to go`);
+    } else if (t.spent >= t.planned) {
+      subtotalBits.push(`${formatPrice(t.spent)} spent`);
+    } else {
+      subtotalBits.push(`${formatPrice(t.planned)} planned`);
+    }
+  }
+  if (t.unpriced > 0) subtotalBits.push(`${t.unpriced} unpriced`);
+  const subtotal = subtotalBits.length ? `<div class="shop-subtotal">${subtotalBits.join(' · ')}</div>` : '';
   return `<ul class="shop-items">
     ${sorted.map(({ it, i }) => `<li class="shop-item${it.purchased ? ' purchased' : ''}">
       <button class="shopping-check" data-action="toggle-purchased" data-slug="${esc(slug)}" data-idx="${i}" type="button" aria-label="${it.purchased ? 'Mark as not purchased' : 'Mark as purchased'}">${it.purchased ? '✓' : ''}</button>
       <span class="shop-item-name">${esc(it.name)}</span>
+      <input class="shopping-price" data-action="set-price" data-slug="${esc(slug)}" data-idx="${i}" type="number" step="0.01" min="0" inputmode="decimal" placeholder="£" aria-label="Price in GBP" value="${priceInputValue(it.price)}" />
       <button class="shopping-remove" data-action="remove-buy-item" data-slug="${esc(slug)}" data-idx="${i}" type="button" aria-label="Remove ${esc(it.name)}">×</button>
     </li>`).join('')}
-  </ul>`;
+  </ul>${subtotal}`;
 }
 
 export function buildShopping() {
@@ -73,11 +115,16 @@ export function buildShopping() {
   // Badge: unpurchased item count; if zero, fall back to booth count.
   let unpurchased = 0;
   let totalItems = 0;
+  let totalPlanned = 0;
+  let totalSpent = 0;
+  let totalUnpriced = 0;
   for (const [, e] of entries) {
-    for (const it of e.buyList || []) {
-      totalItems++;
-      if (!it.purchased) unpurchased++;
-    }
+    const t = totalsFor(e.buyList);
+    unpurchased += t.totalItems - (e.buyList || []).filter((it) => it.purchased).length;
+    totalItems += t.totalItems;
+    totalPlanned += t.planned;
+    totalSpent += t.spent;
+    totalUnpriced += t.unpriced;
   }
   if (tabBadge) {
     if (unpurchased > 0) {
@@ -106,6 +153,17 @@ export function buildShopping() {
     html += `<strong>${unpurchased}</strong> to buy · <strong>${totalItems - unpurchased}</strong> picked up · across <strong>${entries.length}</strong> stand${entries.length === 1 ? '' : 's'}.`;
   }
   html += `</p>`;
+  if (totalPlanned > 0 || totalUnpriced > 0) {
+    const remaining = totalPlanned - totalSpent;
+    const bits: string[] = [];
+    if (totalPlanned > 0) {
+      bits.push(`<strong>${formatPrice(totalPlanned)}</strong> planned`);
+      if (totalSpent > 0) bits.push(`<strong>${formatPrice(totalSpent)}</strong> spent`);
+      if (remaining > 0) bits.push(`<strong>${formatPrice(remaining)}</strong> to go`);
+    }
+    if (totalUnpriced > 0) bits.push(`<span class="shop-summary-unpriced">${totalUnpriced} unpriced</span>`);
+    html += `<p class="shop-summary shop-summary-money">${bits.join(' · ')}</p>`;
+  }
 
   // One booth = one card-like block.
   for (const [slug, e] of entries) {
@@ -126,6 +184,7 @@ export function buildShopping() {
       ${renderItems(e.buyList, slug)}
       <form class="shopping-add shop-add" data-action="add-buy-item-shop" data-slug="${esc(slug)}">
         <input type="text" data-role="shopping-input" placeholder="Add a game to buy from ${esc(info.name)}…" />
+        <input type="number" data-role="shopping-price" class="shopping-price" placeholder="£" step="0.01" min="0" inputmode="decimal" aria-label="Price in GBP" />
         <button type="submit" class="shopping-add-btn">+ Add</button>
       </form>
     </section>`;
@@ -165,9 +224,23 @@ export function wireShopping() {
     if (!slug || !input) return;
     const val = input.value.trim();
     if (!val) return;
-    store.addBuyItem(slug, val);
+    const priceInput = form.querySelector<HTMLInputElement>('[data-role="shopping-price"]');
+    const price = parsePrice(priceInput?.value);
+    store.addBuyItem(slug, val, price);
     input.value = '';
+    if (priceInput) priceInput.value = '';
     input.focus();
+  });
+
+  // Per-item price edit. `change` fires on blur/Enter, so by the time the
+  // store updates and triggers a re-render the user is no longer focused.
+  panel.addEventListener('change', (e) => {
+    const input = e.target as HTMLInputElement;
+    if (!input?.dataset || input.dataset.action !== 'set-price') return;
+    const slug = input.dataset.slug;
+    const idx = parseInt(input.dataset.idx || '-1', 10);
+    if (!slug || idx < 0) return;
+    store.setBuyItemPrice(slug, idx, parsePrice(input.value));
   });
 
   store.subscribe(buildShopping);

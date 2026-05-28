@@ -13,6 +13,23 @@ function escapeHtml(s: string): string {
   return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 }
 
+export function parsePrice(raw: string | undefined | null): number | undefined {
+  if (raw == null) return undefined;
+  const trimmed = String(raw).trim().replace(/^£/, '');
+  if (!trimmed) return undefined;
+  const n = Number(trimmed);
+  if (Number.isNaN(n) || n < 0) return undefined;
+  return n;
+}
+
+export function formatPrice(n: number): string {
+  return `£${n.toFixed(2)}`;
+}
+
+function priceInputValue(price?: number): string {
+  return typeof price === 'number' ? price.toFixed(2) : '';
+}
+
 function renderShoppingList(items: BoothEntry['buyList']): string {
   if (!items || items.length === 0) {
     return '<li class="shopping-empty">No specific games listed yet. Add one below ↓</li>';
@@ -22,6 +39,7 @@ function renderShoppingList(items: BoothEntry['buyList']): string {
       (it, i) => `<li class="shopping-item${it.purchased ? ' purchased' : ''}">
       <button class="shopping-check" data-action="toggle-purchased" data-idx="${i}" type="button" aria-label="${it.purchased ? 'Mark as not purchased' : 'Mark as purchased'}">${it.purchased ? '✓' : ''}</button>
       <span class="shopping-name">${escapeHtml(it.name)}</span>
+      <input class="shopping-price" data-action="set-price" data-idx="${i}" type="number" step="0.01" min="0" inputmode="decimal" placeholder="£" aria-label="Price in GBP" value="${priceInputValue(it.price)}" />
       <button class="shopping-remove" data-action="remove-buy-item" data-idx="${i}" type="button" aria-label="Remove ${escapeHtml(it.name)}">×</button>
     </li>`
     )
@@ -140,9 +158,26 @@ export function wireAllCards() {
     if (!input) return;
     const val = input.value.trim();
     if (!val) return;
-    store.addBuyItem(card.dataset.slug!, val);
+    const priceInput = form.querySelector<HTMLInputElement>('[data-role="shopping-price"]');
+    const price = parsePrice(priceInput?.value);
+    store.addBuyItem(card.dataset.slug!, val, price);
     input.value = '';
+    if (priceInput) priceInput.value = '';
     input.focus();
+  });
+
+  // Per-item price edit. `change` fires on blur or Enter — after the user is
+  // done, so the syncAll re-render that follows doesn't clobber an in-flight
+  // edit. Works on the booth-card editor and on any clone (modal, search).
+  document.addEventListener('change', (e) => {
+    const input = e.target as HTMLInputElement;
+    if (!input?.dataset || input.dataset.action !== 'set-price') return;
+    if (input.closest('#shopping-list')) return; // shopping tab has its own handler
+    const card = input.closest<HTMLElement>('.card[data-slug]');
+    if (!card) return;
+    const idx = parseInt(input.dataset.idx || '-1', 10);
+    if (idx < 0) return;
+    store.setBuyItemPrice(card.dataset.slug!, idx, parsePrice(input.value));
   });
 
   // Notes input delegation (also works on clones).

@@ -1,5 +1,6 @@
 // Markdown export — gathers state + card metadata into shareable text.
 import { store, toast } from './state';
+import { formatPrice } from './cards';
 
 function lookup(slug: string) {
   const card = document.querySelector<HTMLElement>(`.card[data-slug="${CSS.escape(slug)}"]`);
@@ -38,16 +39,53 @@ function buildMarkdown(): string {
     lines.push('');
   }
   const buying = Object.entries(store.data).filter(([, v]) => v.buy || (v.buyList && v.buyList.length));
+  let totalPlanned = 0;
+  let totalSpent = 0;
+  let totalUnpriced = 0;
   if (buying.length) {
     lines.push('## 🛒 Shopping list');
     for (const [slug, v] of buying) {
       const i = lookup(slug);
       lines.push(`- **${i.name}** — ${i.hall} ${i.stand}`);
+      let boothPlanned = 0;
+      let boothSpent = 0;
+      let boothUnpriced = 0;
       for (const item of v.buyList || []) {
         const tick = item.purchased ? '[x]' : '[ ]';
-        lines.push(`  - ${tick} ${item.name}`);
+        const price = typeof item.price === 'number' ? ` — ${formatPrice(item.price)}` : '';
+        lines.push(`  - ${tick} ${item.name}${price}`);
+        if (typeof item.price === 'number') {
+          boothPlanned += item.price;
+          if (item.purchased) boothSpent += item.price;
+        } else {
+          boothUnpriced++;
+        }
       }
+      if (boothPlanned > 0 || boothUnpriced > 0) {
+        const bits: string[] = [];
+        if (boothPlanned > 0) {
+          bits.push(`${formatPrice(boothPlanned)} planned`);
+          if (boothSpent > 0) bits.push(`${formatPrice(boothSpent)} spent`);
+        }
+        if (boothUnpriced > 0) bits.push(`${boothUnpriced} unpriced`);
+        lines.push(`  - _Subtotal: ${bits.join(' · ')}_`);
+      }
+      totalPlanned += boothPlanned;
+      totalSpent += boothSpent;
+      totalUnpriced += boothUnpriced;
       if (v.notes && v.notes.trim()) for (const ln of v.notes.split(/\r?\n/)) lines.push(`  - ${ln}`);
+    }
+    if (totalPlanned > 0 || totalUnpriced > 0) {
+      const remaining = totalPlanned - totalSpent;
+      const bits: string[] = [];
+      if (totalPlanned > 0) {
+        bits.push(`${formatPrice(totalPlanned)} planned`);
+        if (totalSpent > 0) bits.push(`${formatPrice(totalSpent)} spent`);
+        if (remaining > 0) bits.push(`${formatPrice(remaining)} to go`);
+      }
+      if (totalUnpriced > 0) bits.push(`${totalUnpriced} unpriced`);
+      lines.push('');
+      lines.push(`**Total: ${bits.join(' · ')}**`);
     }
     lines.push('');
   }

@@ -1464,7 +1464,7 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
 .shop-item,
 .shopping-item {
   display: grid;
-  grid-template-columns: 28px 1fr 28px;
+  grid-template-columns: 28px 1fr 72px 28px;
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
@@ -1531,6 +1531,60 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   font-size: 13px;
   font-style: italic;
   list-style: none;
+}
+
+/* Per-item price input — narrow numeric column inside the shop-item grid
+   and matching styling inside the add form. */
+.shopping-price {
+  width: 100%;
+  min-width: 0;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-family: inherit;
+  font-size: 13px;
+  text-align: right;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.shopping-price::-webkit-outer-spin-button,
+.shopping-price::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.shopping-price:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.shop-item.purchased .shopping-price,
+.shopping-item.purchased .shopping-price {
+  color: var(--ink-dim);
+}
+.shopping-add .shopping-price {
+  flex: 0 0 70px;
+  padding: 7px 8px;
+  font-size: 14px;
+}
+
+/* Subtotal line under each booth's items on the shopping tab. */
+.shop-subtotal {
+  margin: 2px 4px 8px;
+  font-size: 12px;
+  color: var(--ink-dim);
+  text-align: right;
+}
+/* Money summary at the top of the shopping tab. */
+.shop-summary-money {
+  margin-top: -4px;
+  color: var(--ink-dim);
+}
+.shop-summary-money strong {
+  color: var(--ink);
+}
+.shop-summary-unpriced {
+  color: var(--warn);
 }
 
 /* Inline editor on the booth card. Grid column span is set by the

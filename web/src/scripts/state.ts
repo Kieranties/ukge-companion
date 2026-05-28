@@ -9,6 +9,8 @@
 export type PlanDay = 'any' | 'fri' | 'sat' | 'sun';
 export interface BuyItem {
   name: string;
+  /** Expected/actual price in GBP. Optional — items without a price contribute zero to totals. */
+  price?: number;
   purchased?: boolean;
   addedAt?: string;
   purchasedAt?: string;
@@ -109,12 +111,25 @@ class StateStore {
     this.update(slug, { notes: notes.trim() ? notes : undefined });
   }
 
-  addBuyItem(slug: string, name: string): void {
+  addBuyItem(slug: string, name: string, price?: number): void {
     const clean = name.trim();
     if (!clean) return;
     const e = this.get(slug);
-    const next = [...(e.buyList || []), { name: clean, addedAt: new Date().toISOString() }];
+    const item: BuyItem = { name: clean, addedAt: new Date().toISOString() };
+    if (typeof price === 'number' && !Number.isNaN(price)) item.price = price;
+    const next = [...(e.buyList || []), item];
     this.update(slug, { buyList: next, buy: true, buyAt: e.buyAt || new Date().toISOString(), skipped: false });
+  }
+
+  setBuyItemPrice(slug: string, idx: number, price: number | undefined): void {
+    const e = this.get(slug);
+    const list = e.buyList ? [...e.buyList] : [];
+    if (idx < 0 || idx >= list.length) return;
+    const cur = { ...list[idx] };
+    if (price === undefined || Number.isNaN(price)) delete cur.price;
+    else cur.price = price;
+    list[idx] = cur;
+    this.update(slug, { buyList: list });
   }
 
   togglePurchased(slug: string, idx: number): void {
