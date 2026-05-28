@@ -2001,6 +2001,47 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   font-weight: 600;
 }
 
+/* Vendor modal — pops an existing exhibitor card into an overlay. The card
+   already carries its own padding/background, so the modal box just frames
+   it and provides a close affordance. */
+.vendor-modal-box {
+  position: relative;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  max-width: 640px;
+  overflow: visible;
+}
+.vendor-modal-body {
+  overflow: auto;
+  max-height: 90vh;
+  border-radius: var(--radius);
+}
+.vendor-modal-close {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+.vendor-modal-close:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* ---------- Footer ------------------------------------------------------- */
 footer {
   padding: 30px 0 0;

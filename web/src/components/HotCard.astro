@@ -64,7 +64,7 @@ const haystack = [
       const mapU = me.exhibitor.stand ? `https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/map/#${me.exhibitor.stand}` : null;
       return (
         <div class="hot-venue">
-          <a class="ex-name" href={u} target="_blank" rel="noopener">{me.exhibitor.name}</a>
+          <a class="ex-name" href={u} target="_blank" rel="noopener" data-action="open-vendor-card" data-vendor-slug={me.exhibitor.slug} title={`Open ${me.exhibitor.name} in app`}>{me.exhibitor.name}</a>
           {mapU ? (
             <a class="ex-loc-tag stand" href={mapU} target="_blank" rel="noopener" title={`Find ${me.exhibitor.stand} on the UKGE map`}>
               {me.exhibitor.hall} {me.exhibitor.stand}
