@@ -5,8 +5,20 @@ import ExhibitorCard from '../components/ExhibitorCard.astro';
 import DiscoveryCard from '../components/DiscoveryCard.astro';
 import AllVendorCard from '../components/AllVendorCard.astro';
 import HotCard from '../components/HotCard.astro';
+import EventCard from '../components/EventCard.astro';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const eventCategoryCounts: { cat: string; n: number }[] = (() => {
+  const counts: Record<string, number> = {};
+  for (const e of (data.events as any[]) || []) {
+    const c = e.category || 'Other';
+    counts[c] = (counts[c] || 0) + 1;
+  }
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([cat, n]) => ({ cat, n }));
+})();
 ---
 <!doctype html>
 <html lang="en">
@@ -111,6 +123,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <div class="tabs-inner" id="tabs">
       <button class="tab active" data-tab="for-you">For you <span class="badge">{data.stats.matched_exhibitors}</span></button>
       <button class="tab" data-tab="hot">Hot games <span class="badge">{data.stats.hot_count}</span></button>
+      <button class="tab" data-tab="events">Events <span class="badge">{data.stats.events_count}</span></button>
       <button class="tab" data-tab="route">Route</button>
       <button class="tab" data-tab="shopping">Shopping <span class="badge hidden">0</span></button>
       <button class="tab" data-tab="discover">Discover <span class="badge">{data.stats.discovery_count}</span></button>
@@ -146,6 +159,25 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       <div class="card-grid two-up">
         {data.hot_at_show.map((hot) => <HotCard hot={hot} />)}
       </div>
+    </section>
+  </div>
+
+  <div class="panel" data-panel="events">
+    <section>
+      <div class="section-head">
+        <h2>Events <span class="count">— {data.stats.events_count} scheduled · {data.stats.events_linked} linked to a stand</span></h2>
+        <p class="lede">Tournaments, RPG sessions, seminars, meet-and-greets, and live entertainment. Day pill above filters this too; category pill below scopes by event type. Click a stand chip on any event to open the publisher card in-app.</p>
+      </div>
+      <div class="event-cat-row" id="event-cat-row">
+        <button class="pill cat-pill active" data-cat="all" type="button">All <span class="event-cat-count">{data.stats.events_count}</span></button>
+        {eventCategoryCounts.map(({ cat, n }) => (
+          <button class="pill cat-pill" data-cat={cat} type="button">{cat} <span class="event-cat-count">{n}</span></button>
+        ))}
+      </div>
+      <div class="event-grid" id="event-grid">
+        {(data.events || []).map((e: any) => <EventCard event={e} />)}
+      </div>
+      <p class="event-empty hidden" id="event-empty">Nothing matches the current filters.</p>
     </section>
   </div>
 

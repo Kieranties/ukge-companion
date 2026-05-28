@@ -24,6 +24,7 @@ UKGE_HTML = ROOT / "ukge_raw.html"
 HOTNESS = ROOT / "bgg_hotness.json"
 HOT_DESCRIPTIONS = ROOT / "hot_descriptions.json"
 AWARDS = ROOT / "awards.json"
+EVENTS = ROOT / "events.json"
 OUT = ROOT.parent / "web" / "src" / "data" / "dashboard.json"
 EXHIBITOR_GAMES = ROOT.parent / "web" / "src" / "data" / "exhibitor_games.json"
 BGG_USERNAME = "Kieranties"
@@ -392,16 +393,24 @@ def main():
         n = games_per_pub.get(pub_name, 1)
         return 1.0 / math.log2(n + 1)
 
+    # User's top-mechanic vocabulary, used to compute per-recommendation
+    # mechanic overlap. Top N mechanics by play weight — match against the
+    # mechanic list on each matched game (game-level signal, more specific
+    # than the exhibitor-category overlap that already feeds cat_affinity).
+    top_mech_names = {m for m, _ in top_mechs}
+
     # ---- Recommendations: match collection publishers to exhibitors
     matches = {}
     for g in collection:
         plays = g.get("plays") or 0
+        game_mechs = g.get("mechanics") or []
         for pub in g.get("publishers", []):
             ex, score = match_publisher(pub["name"], by_full, by_toks)
             if not ex:
                 continue
             m = matches.setdefault(ex["slug"], {
                 "exhibitor": ex, "games": [], "total_plays": 0, "matched_pubs": set(),
+                "matched_mechs": set(),
             })
             if any(x["game"]["bggId"] == g["bggId"] for x in m["games"]):
                 continue
@@ -416,10 +425,14 @@ def main():
             })
             m["total_plays"] += plays
             m["matched_pubs"].add(pub["name"])
+            for mech in game_mechs:
+                if mech in top_mech_names:
+                    m["matched_mechs"].add(mech)
 
     recommendations = []
     for slug, m in matches.items():
         m["matched_pubs"] = sorted(m["matched_pubs"])
+        matched_mechs = sorted(m["matched_mechs"])
         m["games"].sort(key=lambda x: (-x["plays"], -x["score"]))
         # 1) Publisher contribution — play-weighted, but rarity-scaled so
         #    big generic publishers don't dominate.
@@ -437,20 +450,27 @@ def main():
         desc_tokens = set(tokens_of(m["exhibitor"].get("description") or ""))
         cat_overlap = sorted((ex_cat_tokens | desc_tokens) & tag_keywords)
         cat_affinity = 3.0 * len(cat_overlap)
-        # 3) On-topic guard — exhibitors that aren't tagged as a
+        # 3) Mechanic affinity — game-level overlap between the user's top
+        #    mechanics and the matched games' mechanic lists. More specific
+        #    than category (which is exhibitor-level) so weight slightly
+        #    higher per match.
+        mech_affinity = 4.0 * len(matched_mechs)
+        # 4) On-topic guard — exhibitors that aren't tagged as a
         #    boardgame-relevant category get heavily penalised.
         ex_cats = set(m["exhibitor"].get("categories") or [])
         on_topic = (not ex_cats) or bool(ex_cats & BOARDGAME_CATS)
-        raw = pub_score + cat_affinity
+        raw = pub_score + cat_affinity + mech_affinity
         final = raw if on_topic else raw * 0.3
         recommendations.append({
             "exhibitor": m["exhibitor"],
             "games": m["games"],
             "matched_publishers": m["matched_pubs"],
             "matched_categories": cat_overlap,
+            "matched_mechanics": matched_mechs,
             "total_plays": m["total_plays"],
             "publisher_score": round(pub_score, 1),
             "category_affinity": len(cat_overlap),
+            "mechanic_affinity": len(matched_mechs),
             "raw_score": round(raw, 1),
             "score": round(final, 1),
             "on_topic": on_topic,
@@ -514,6 +534,61 @@ def main():
     for i, h in enumerate(hot_at_show, 1):
         h["rank"] = i
 
+    # ---- Events: load the scraped catalogue and best-effort link each event
+    # to a known exhibitor by matching its title prefix to the exhibitor name
+    # index. Titles often follow "<Publisher>: <event name>", so we feed the
+    # full title through name_key — match_publisher already tolerates noise.
+    events_raw = json.loads(EVENTS.read_text(encoding="utf-8")) if EVENTS.exists() else []
+    day_order = {"Friday": 1, "Saturday": 2, "Sunday": 3}
+
+    def time_sort_key(t):
+        if not t:
+            return (99, 99)
+        m = re.search(r"(\d{1,2})[:.](\d{2})", t)
+        if not m:
+            return (99, 99)
+        return (int(m.group(1)), int(m.group(2)))
+
+    events = []
+    for e in events_raw:
+        title = e.get("title") or ""
+        # Try the title as-is, then a shortened lead (before the first colon)
+        candidates = [title]
+        if ":" in title:
+            candidates.insert(0, title.split(":", 1)[0])
+        exhibitor_slug = None
+        exhibitor_name = None
+        for cand in candidates:
+            ex, _ = match_publisher(cand, by_full, by_toks)
+            if ex:
+                exhibitor_slug = ex["slug"]
+                exhibitor_name = ex["name"]
+                break
+        days = e.get("days") or []
+        events.append({
+            "id": e.get("id"),
+            "slug": e.get("slug"),
+            "url": e.get("url"),
+            "title": title,
+            "category": e.get("category"),
+            "subtitle": e.get("subtitle"),
+            "price": e.get("price"),
+            "image": e.get("image"),
+            "days": days,
+            "time": e.get("time"),
+            "exhibitor_slug": exhibitor_slug,
+            "exhibitor_name": exhibitor_name,
+            # Sort key: first day, then start time. Multi-day events
+            # surface under their earliest day; the UI splits them across
+            # day buckets at render time.
+            "_sort_day": min((day_order.get(d, 9) for d in days), default=9),
+            "_sort_time": time_sort_key(e.get("time")),
+        })
+    events.sort(key=lambda x: (x["_sort_day"], x["_sort_time"], x["title"].lower()))
+    for e in events:
+        del e["_sort_day"]
+        del e["_sort_time"]
+
     # ---- Stats
     total_plays = sum(g.get("plays") or 0 for g in collection)
     matched_games_count = sum(1 for g in collection if any(
@@ -539,10 +614,13 @@ def main():
             "coverage_pct": coverage,
             "hot_count": len(hot_at_show),
             "discovery_count": len(discovery),
+            "events_count": len(events),
+            "events_linked": sum(1 for e in events if e["exhibitor_slug"]),
         },
         "recommendations": recommendations,
         "discovery": discovery,
         "hot_at_show": hot_at_show,
+        "events": events,
         "all_exhibitors": sorted(exhibitors, key=lambda x: (x.get("name") or "").lower()),
         "top_categories": [{"name": c, "weight": w} for c, w in top_cats],
         "top_mechanics": [{"name": m, "weight": w} for m, w in top_mechs],
@@ -550,7 +628,7 @@ def main():
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"wrote {OUT} ({OUT.stat().st_size:,} bytes)")
-    print(f"  {len(recommendations)} recommendations · {len(discovery)} discovery · {len(hot_at_show)} hot games")
+    print(f"  {len(recommendations)} recommendations | {len(discovery)} discovery | {len(hot_at_show)} hot games | {len(events)} events ({sum(1 for e in events if e['exhibitor_slug'])} linked)")
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ import { wireFilterTray } from './filter-tray';
 import { wireHeaderMenu } from './header-menu';
 import { wireFiltersPanel } from './filters-panel';
 import { wireVendorModal } from './vendor-modal';
+import { wireEvents } from './events';
 
 wireTheme();
 wireAllCards();
@@ -26,6 +27,7 @@ wireFilterTray();
 wireHeaderMenu();
 wireFiltersPanel();
 wireVendorModal();
+wireEvents();
 wireShare();
 wireExport();
 wirePWA();

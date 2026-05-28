@@ -39,8 +39,10 @@ interface Props {
     games: MatchedGame[];
     matched_publishers: string[];
     matched_categories?: string[];
+    matched_mechanics?: string[];
     publisher_score?: number;
     category_affinity?: number;
+    mechanic_affinity?: number;
     total_plays: number;
     score: number;
     on_topic: boolean;
@@ -53,6 +55,7 @@ const url = `https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/${e.slug}/`;
 const cats = (e.categories || []);
 const catsString = cats.join(' · ');
 const matchedCats = rec.matched_categories || [];
+const matchedMechs = rec.matched_mechanics || [];
 
 const haystack = [
   e.name,
@@ -78,6 +81,7 @@ const whyParts = [];
 if (rec.games.length) whyParts.push(`${rec.games.length} game${rec.games.length === 1 ? '' : 's'} in your collection (${rec.total_plays} plays)`);
 if (rec.matched_publishers.length) whyParts.push(`${rec.matched_publishers.length} publisher match${rec.matched_publishers.length === 1 ? '' : 'es'}`);
 if (matchedCats.length) whyParts.push(`${matchedCats.length} taste overlap${matchedCats.length === 1 ? '' : 's'}`);
+if (matchedMechs.length) whyParts.push(`${matchedMechs.length} mechanic match${matchedMechs.length === 1 ? '' : 'es'}`);
 const whyText = whyParts.join(' · ');
 ---
 <article
@@ -135,6 +139,7 @@ const whyText = whyParts.join(' · ');
       <div><dt>Matched games</dt><dd>{rec.games.length} · {rec.total_plays} plays</dd></div>
       <div><dt>Publisher match</dt><dd>{rec.publisher_score ?? '—'}</dd></div>
       <div><dt>Taste overlap</dt><dd>{matchedCats.length === 0 ? 'none' : matchedCats.join(', ')}</dd></div>
+      <div><dt>Mechanic match</dt><dd>{matchedMechs.length === 0 ? 'none' : matchedMechs.join(', ')}</dd></div>
     </dl>
   </div>
   <details class="game-list-wrap">

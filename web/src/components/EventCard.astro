@@ -1,0 +1,65 @@
+---
+interface Props {
+  event: {
+    id: string;
+    slug: string;
+    url: string;
+    title: string;
+    category: string | null;
+    subtitle?: string | null;
+    price?: string | null;
+    image?: string | null;
+    days: string[];
+    time?: string | null;
+    exhibitor_slug?: string | null;
+    exhibitor_name?: string | null;
+  };
+}
+const { event: e } = Astro.props;
+const eventUrl = `https://www.ukgamesexpo.co.uk${e.url}`;
+const dayCodes = (e.days || []).map((d) => d.slice(0, 3).toLowerCase()).join(' ');
+const haystack = [
+  e.title || '',
+  e.subtitle || '',
+  e.category || '',
+  e.exhibitor_name || '',
+  (e.days || []).join(' '),
+  e.time || '',
+]
+  .join(' ')
+  .toLowerCase();
+---
+<article
+  class="event-card"
+  data-event-id={e.id}
+  data-category={e.category || ''}
+  data-days={dayCodes}
+  data-name={(e.title || '').toLowerCase()}
+  data-haystack={haystack}
+>
+  <header class="event-card-head">
+    <span class="event-category">{e.category}</span>
+    <span class="event-days">
+      {(e.days || []).map((d) => <span class={`event-day event-day-${d.slice(0,3).toLowerCase()}`}>{d.slice(0,3)}</span>)}
+    </span>
+    {e.time && <span class="event-time">{e.time}</span>}
+  </header>
+  <h3 class="event-title">
+    <a href={eventUrl} target="_blank" rel="noopener">{e.title}</a>
+  </h3>
+  {e.subtitle && <p class="event-subtitle">{e.subtitle}</p>}
+  <footer class="event-foot">
+    {e.exhibitor_slug && (
+      <a
+        class="event-exhibitor"
+        href={`https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/${e.exhibitor_slug}/`}
+        target="_blank"
+        rel="noopener"
+        data-action="open-vendor-card"
+        data-vendor-slug={e.exhibitor_slug}
+        title={`Open ${e.exhibitor_name} in app`}
+      >🏪 {e.exhibitor_name}</a>
+    )}
+    {e.price && <span class="event-price">{e.price}</span>}
+  </footer>
+</article>
