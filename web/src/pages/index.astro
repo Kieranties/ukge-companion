@@ -97,14 +97,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         </span>
       </div>
       <div class="pill-row day-row">
-        <span class="label">Search in:</span>
+        <span class="label">Refine:</span>
         <span class="pills">
-          <button class="pill facet-pill" data-facet="all">All</button>
-          <button class="pill facet-pill" data-facet="exhibitor">Exhibitor</button>
-          <button class="pill facet-pill" data-facet="games">Games</button>
-          <button class="pill facet-pill" data-facet="publishers">Publishers</button>
-          <button class="pill facet-pill" data-facet="categories">Categories</button>
-          <button class="pill facet-pill" data-facet="halls">Halls</button>
+          <button class="pill refine-btn" id="open-filters-panel" type="button">+ Add filter…</button>
         </span>
       </div>
     </div>
@@ -131,17 +126,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   <div class="search-results" id="search-results"></div>
 
   <div class="panel active" data-panel="for-you">
-    <div class="meta-strip">
-      <div class="meta-card"><div class="v">{data.stats.total_games}</div><div class="k">games in collection</div></div>
-      <div class="meta-card"><div class="v">{data.stats.total_plays}</div><div class="k">total plays logged</div></div>
-      <div class="meta-card"><div class="v">{data.stats.total_exhibitors}</div><div class="k">exhibitors at show</div></div>
-      <div class="meta-card"><div class="v">{data.stats.matched_exhibitors}</div><div class="k">match your collection</div></div>
-      <div class="meta-card"><div class="v">{data.stats.coverage_pct}%</div><div class="k">collection coverage</div></div>
-    </div>
     <section>
       <div class="section-head">
-        <h2>Top recommendations <span class="count">— {data.stats.matched_exhibitors} exhibitors who publish games you actually play</span></h2>
-        <p class="lede">Ranked by play-weighted publisher matches. Each game's contribution is capped at 25 plays so one favourite doesn't drown out the rest.</p>
+        <h2>Top recommendations <span class="count">— {data.stats.matched_exhibitors} exhibitors</span></h2>
+        <p class="lede">Ranked by publisher matches against your BGG collection — weighted by plays, dampened for big generic publishers, with a small bonus for category overlap. <a href="#info">See your taste signal →</a></p>
       </div>
       <div class="card-grid two-up">
         {data.recommendations.map((rec) => <ExhibitorCard rec={rec} />)}
@@ -206,6 +194,47 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   </div>
 
   <div class="panel" data-panel="info">
+    <section>
+      <div class="section-head">
+        <h2>Your taste signal</h2>
+        <p class="lede">Everything below is derived from your BGG collection. It feeds the recommendations on the For-you tab and the Discovery picks.</p>
+      </div>
+      <div class="taste-strip">
+        <div class="taste-card">
+          <div class="taste-v">{data.stats.total_games}</div>
+          <div class="taste-k">games in collection</div>
+          <div class="taste-sub">{data.stats.total_plays.toLocaleString()} plays logged</div>
+        </div>
+        <div class="taste-card">
+          <div class="taste-v">{data.stats.coverage_pct}%</div>
+          <div class="taste-k">of your collection is published here</div>
+          <div class="taste-sub">{data.stats.matched_exhibitors} of {data.stats.total_exhibitors} exhibitors match</div>
+        </div>
+        <div class="taste-card">
+          <div class="taste-v">{data.stats.hot_count}</div>
+          <div class="taste-k">BGG hot games at the show</div>
+          <div class="taste-sub">{data.stats.discovery_count} discovery picks beyond your collection</div>
+        </div>
+      </div>
+      <div class="taste-tags">
+        <div class="taste-tags-block">
+          <h3>Top categories you play</h3>
+          <div class="taste-chip-row">
+            {(data.top_categories || []).slice(0, 8).map((c: any) => (
+              <span class="taste-chip" title={`Weight ${c.weight}`}>{c.name}</span>
+            ))}
+          </div>
+        </div>
+        <div class="taste-tags-block">
+          <h3>Top mechanics you play</h3>
+          <div class="taste-chip-row">
+            {(data.top_mechanics || []).slice(0, 8).map((m: any) => (
+              <span class="taste-chip" title={`Weight ${m.weight}`}>{m.name}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
     <section>
       <div class="section-head">
         <h2>Getting there</h2>
@@ -345,6 +374,23 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       <button id="export-copy" class="primary">Copy to clipboard</button>
       <button id="export-close">Close</button>
     </div>
+  </div>
+</div>
+
+<!-- Filters panel — opened from the "+ Add filter…" pill. Sheet on mobile,
+     popover on desktop. Body is rendered dynamically by filters-panel.ts. -->
+<div class="filters-panel" id="filters-panel" aria-hidden="true">
+  <div class="filters-panel-backdrop" data-action="close-filters-panel"></div>
+  <div class="filters-panel-sheet" role="dialog" aria-modal="true" aria-labelledby="filters-panel-title">
+    <header class="filters-panel-head">
+      <h3 id="filters-panel-title">Refine results</h3>
+      <button class="filters-panel-close" type="button" data-action="close-filters-panel" aria-label="Close">×</button>
+    </header>
+    <div class="filters-panel-body" id="filters-panel-body"></div>
+    <footer class="filters-panel-foot">
+      <button class="filters-clear" type="button" data-action="clear-all-filters">Clear all</button>
+      <button class="filters-done primary" type="button" data-action="close-filters-panel">Done</button>
+    </footer>
   </div>
 </div>
 

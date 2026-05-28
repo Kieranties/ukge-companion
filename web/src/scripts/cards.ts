@@ -124,6 +124,8 @@ export function wireAllCards() {
       if (area && !area.classList.contains('hidden')) {
         area.querySelector<HTMLTextAreaElement>('[data-role="notes-text"]')?.focus();
       }
+    } else if (action === 'toggle-why') {
+      card.querySelector<HTMLElement>('[data-role="why-panel"]')?.classList.toggle('hidden');
     }
   });
 

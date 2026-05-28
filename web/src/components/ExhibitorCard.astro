@@ -38,6 +38,9 @@ interface Props {
     exhibitor: Exhibitor;
     games: MatchedGame[];
     matched_publishers: string[];
+    matched_categories?: string[];
+    publisher_score?: number;
+    category_affinity?: number;
     total_plays: number;
     score: number;
     on_topic: boolean;
@@ -49,7 +52,7 @@ const e = rec.exhibitor;
 const url = `https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/${e.slug}/`;
 const cats = (e.categories || []);
 const catsString = cats.join(' · ');
-const whyText = `Matched on ${rec.matched_publishers.length} publisher${rec.matched_publishers.length === 1 ? '' : 's'} credited on ${rec.games.length} of your games: ${rec.matched_publishers.slice(0, 8).join(', ')}${rec.matched_publishers.length > 8 ? '…' : ''}`;
+const matchedCats = rec.matched_categories || [];
 
 const haystack = [
   e.name,
@@ -62,16 +65,23 @@ const haystack = [
 ]
   .join(' ')
   .toLowerCase();
-// Tag-filter data: pipe-separated for whole-token includes() checks.
 const tagCategories = cats.join('|');
 const tagPublishers = rec.matched_publishers.join('|');
 const tagGames = rec.games.map((g) => g.game.name).join('|');
 const ukgeGameNames = (e.ukge_games || []).map((g: any) => g.name).join(' ');
 const gameNames = rec.games.map((g) => g.game.name).join(' ');
 const pubs = rec.matched_publishers.join(' ');
+
+// Why-tooltip: human summary of the score breakdown. Surface only on the
+// recommendation card (kind=recommendation) since score lives there only.
+const whyParts = [];
+if (rec.games.length) whyParts.push(`${rec.games.length} game${rec.games.length === 1 ? '' : 's'} in your collection (${rec.total_plays} plays)`);
+if (rec.matched_publishers.length) whyParts.push(`${rec.matched_publishers.length} publisher match${rec.matched_publishers.length === 1 ? '' : 'es'}`);
+if (matchedCats.length) whyParts.push(`${matchedCats.length} taste overlap${matchedCats.length === 1 ? '' : 's'}`);
+const whyText = whyParts.join(' · ');
 ---
 <article
-  class="card has-stats"
+  class="card has-score"
   data-kind="recommendation"
   data-slug={e.slug}
   data-name={(e.name || '').toLowerCase()}
@@ -90,6 +100,10 @@ const pubs = rec.matched_publishers.join(' ');
   data-plays={rec.total_plays}
   data-ontopic={rec.on_topic ? '1' : '0'}
 >
+  <button class="score-chip" type="button" data-action="toggle-why" title={whyText} aria-label={`Why this exhibitor — ${whyText}`}>
+    <span class="score-value">{rec.score}</span>
+    <span class="score-label">score</span>
+  </button>
   <header class="card-head">
     <div class="card-rank">#{rec.rank}</div>
     <Logo name={e.name} logo={e.logo} />
@@ -107,11 +121,6 @@ const pubs = rec.matched_publishers.join(' ');
         )}
       </div>
     </div>
-    <div class="card-stats">
-      <div class="stat"><strong>{rec.games.length}</strong><span>game{rec.games.length === 1 ? '' : 's'}</span></div>
-      <div class="stat"><strong>{rec.total_plays}</strong><span>plays</span></div>
-      <div class="stat"><strong>{rec.score}</strong><span>score</span></div>
-    </div>
   </header>
   {cats.length > 0 && (
     <div class="card-cats">
@@ -121,6 +130,13 @@ const pubs = rec.matched_publishers.join(' ');
     </div>
   )}
   {e.description && <p class="card-desc">{e.description}</p>}
+  <div class="why-panel hidden" data-role="why-panel">
+    <dl class="why-stats">
+      <div><dt>Matched games</dt><dd>{rec.games.length} · {rec.total_plays} plays</dd></div>
+      <div><dt>Publisher match</dt><dd>{rec.publisher_score ?? '—'}</dd></div>
+      <div><dt>Taste overlap</dt><dd>{matchedCats.length === 0 ? 'none' : matchedCats.join(', ')}</dd></div>
+    </dl>
+  </div>
   <details class="game-list-wrap">
     <summary>{rec.games.length} matching {rec.games.length === 1 ? 'game' : 'games'} in your collection</summary>
     <ul class="game-list">
@@ -136,7 +152,6 @@ const pubs = rec.matched_publishers.join(' ');
       ))}
     </ul>
   </details>
-  <button class="why-btn" type="button" title={whyText}>why is this here?</button>
   <UkgeGames games={e.ukge_games} exhibitorName={e.name} />
   <BoothTools />
 </article>

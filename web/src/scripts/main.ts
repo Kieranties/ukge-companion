@@ -11,6 +11,7 @@ import { wirePWA } from './pwa';
 import { wireTagClicks } from './tags';
 import { wireFilterTray } from './filter-tray';
 import { wireHeaderMenu } from './header-menu';
+import { wireFiltersPanel } from './filters-panel';
 
 wireTheme();
 wireAllCards();
@@ -22,6 +23,7 @@ wireShopping();
 wireSearch();
 wireFilterTray();
 wireHeaderMenu();
+wireFiltersPanel();
 wireShare();
 wireExport();
 wirePWA();

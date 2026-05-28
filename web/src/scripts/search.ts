@@ -3,24 +3,12 @@
 // the fields we want to search on as data-* attributes; the indexer reads
 // those without needing the dashboard.json structure.
 //
-// Search facets (Exhibitor / Games / Publishers / Categories / Halls) let
-// the user scope the query to specific fields. State lives in this module;
-// the UI is a row of pills below the search input. "All" is implicit when
-// no individual facets are active.
+// Free-text search always queries every field. Precise filtering is handled
+// by the structured filter system (filters.ts + tags.ts + filters-panel.ts).
 import MiniSearch from 'minisearch';
 import { applyFilters } from './filters';
 
-type FacetKey = 'exhibitor' | 'games' | 'publishers' | 'categories' | 'halls';
-
-const FACET_FIELDS: Record<FacetKey, string[]> = {
-  exhibitor: ['name', 'description'],
-  games: ['games', 'ukgeGames'],
-  publishers: ['publishers'],
-  categories: ['categories', 'award'],
-  halls: ['hall', 'stand'],
-};
-
-const ALL_FIELDS = Object.values(FACET_FIELDS).flat();
+const ALL_FIELDS = ['name', 'description', 'games', 'ukgeGames', 'publishers', 'categories', 'award', 'hall', 'stand'];
 
 const FIELD_BOOSTS: Record<string, number> = {
   name: 4,
@@ -52,18 +40,6 @@ interface SearchDoc {
 }
 
 let index: MiniSearch<SearchDoc> | null = null;
-
-// Set of *individual* facets the user has toggled on. Empty means "all".
-const activeFacets = new Set<FacetKey>();
-function isActiveFacet(f: FacetKey): boolean {
-  return activeFacets.size === 0 || activeFacets.has(f);
-}
-function effectiveFields(): string[] {
-  if (activeFacets.size === 0) return ALL_FIELDS;
-  const out: string[] = [];
-  for (const f of activeFacets) out.push(...FACET_FIELDS[f]);
-  return out;
-}
 
 export function indexFromPage() {
   const docs: SearchDoc[] = [];
@@ -133,17 +109,14 @@ function renderResults(q: string) {
     return;
   }
   document.body.dataset.searching = '1';
-  const results = index.search(q.trim(), {
-    fields: effectiveFields(),
-  }) as unknown as Array<SearchDoc & { score: number }>;
+  const results = index.search(q.trim()) as unknown as Array<SearchDoc & { score: number }>;
   const groups: Record<string, Array<SearchDoc & { score: number }>> = {};
   for (const r of results.slice(0, 80)) (groups[r.kind] = groups[r.kind] || []).push(r);
   if (results.length === 0) {
-    const facetNote = activeFacets.size > 0 ? ` in ${[...activeFacets].join(', ')}` : '';
-    container.innerHTML = `<div class="search-summary">No results for <strong>${escapeHtml(q)}</strong>${facetNote}.</div>`;
+    container.innerHTML = `<div class="search-summary">No results for <strong>${escapeHtml(q)}</strong>.</div>`;
     return;
   }
-  let html = `<div class="search-summary"><strong>${results.length}</strong> result${results.length === 1 ? '' : 's'} for <strong>${escapeHtml(q)}</strong>${activeFacets.size > 0 ? ` <span class="facet-note">(${[...activeFacets].join(', ')})</span>` : ''}</div>`;
+  let html = `<div class="search-summary"><strong>${results.length}</strong> result${results.length === 1 ? '' : 's'} for <strong>${escapeHtml(q)}</strong></div>`;
   const order: SearchDoc['kind'][] = ['recommendation', 'hot-game', 'discovery', 'all-vendor'];
   for (const kind of order) {
     const items = groups[kind];
@@ -164,36 +137,8 @@ function renderResults(q: string) {
   container.innerHTML = html;
 }
 
-function wireFacetPills() {
-  const pills = Array.from(document.querySelectorAll<HTMLButtonElement>('.facet-pill'));
-  const updateUI = () => {
-    for (const p of pills) {
-      const f = p.dataset.facet;
-      if (f === 'all') p.classList.toggle('active', activeFacets.size === 0);
-      else p.classList.toggle('active', activeFacets.has(f as FacetKey));
-    }
-  };
-  for (const pill of pills) {
-    pill.addEventListener('click', () => {
-      const f = pill.dataset.facet;
-      if (f === 'all') {
-        activeFacets.clear();
-      } else if (f) {
-        const key = f as FacetKey;
-        if (activeFacets.has(key)) activeFacets.delete(key);
-        else activeFacets.add(key);
-      }
-      updateUI();
-      const input = document.getElementById('global-q') as HTMLInputElement | null;
-      if (input?.value.trim()) renderResults(input.value);
-    });
-  }
-  updateUI();
-}
-
 export function wireSearch() {
   indexFromPage();
-  wireFacetPills();
   const input = document.getElementById('global-q') as HTMLInputElement | null;
   let timer: ReturnType<typeof setTimeout> | null = null;
   input?.addEventListener('input', () => {

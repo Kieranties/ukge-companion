@@ -11,6 +11,7 @@ Output:
   ../web/src/data/dashboard.json
 """
 import json
+import math
 import re
 import html
 import unicodedata
@@ -352,6 +353,45 @@ def main():
 
     by_full, by_toks = build_index(exhibitors)
 
+    # ---- Build the user's "taste signal" up front so both recommendations
+    # and discovery can use it. cat_w/mech_w are play-weighted; the resulting
+    # `tag_keywords` is a token set that represents the categories the user
+    # tends to play. Recommendations blend a category-affinity bonus into the
+    # ranking; Discovery uses the same set for token-overlap matching.
+    cat_w, mech_w = {}, {}
+    for g in collection:
+        w = (g.get("plays") or 0) + 1
+        for c in g.get("categories", []):
+            cat_w[c] = cat_w.get(c, 0) + w
+        for mc in g.get("mechanics", []):
+            mech_w[mc] = mech_w.get(mc, 0) + w
+    top_cats = sorted(cat_w.items(), key=lambda x: -x[1])[:8]
+    top_mechs = sorted(mech_w.items(), key=lambda x: -x[1])[:8]
+    tag_keywords = set()
+    for c, _ in top_cats:
+        tag_keywords |= set(tokens_of(c))
+    for mc, _ in top_mechs:
+        tag_keywords |= set(tokens_of(mc))
+    tag_keywords -= STOPWORDS
+
+    # Publisher rarity: how many of the user's games each publisher published.
+    # A publisher behind 1 game is a more specific taste signal than one
+    # behind 20 — score per matched game is divided by log2(n + 1) so big
+    # generic publishers (Asmodee, Hasbro) don't drown out smaller indies.
+    games_per_pub = {}
+    for g in collection:
+        seen_pubs = set()
+        for p in g.get("publishers", []):
+            name = p.get("name")
+            if not name or name in seen_pubs:
+                continue
+            seen_pubs.add(name)
+            games_per_pub[name] = games_per_pub.get(name, 0) + 1
+
+    def pub_rarity(pub_name):
+        n = games_per_pub.get(pub_name, 1)
+        return 1.0 / math.log2(n + 1)
+
     # ---- Recommendations: match collection publishers to exhibitors
     matches = {}
     for g in collection:
@@ -381,39 +421,46 @@ def main():
     for slug, m in matches.items():
         m["matched_pubs"] = sorted(m["matched_pubs"])
         m["games"].sort(key=lambda x: (-x["plays"], -x["score"]))
-        raw = sum(min(g["plays"], 25) + 1 for g in m["games"])
+        # 1) Publisher contribution — play-weighted, but rarity-scaled so
+        #    big generic publishers don't dominate.
+        pub_score = 0.0
+        for g in m["games"]:
+            base = min(g["plays"], 25) + 1
+            pub_score += base * pub_rarity(g["publisher"])
+        # 2) Category affinity — overlap between the user's taste keywords
+        #    and the exhibitor's category/description tokens. Same vocabulary
+        #    Discovery uses; weighted lower than publisher matches so it
+        #    boosts the ranking without overriding direct play data.
+        ex_cat_tokens = set()
+        for c in (m["exhibitor"].get("categories") or []):
+            ex_cat_tokens |= set(tokens_of(c))
+        desc_tokens = set(tokens_of(m["exhibitor"].get("description") or ""))
+        cat_overlap = sorted((ex_cat_tokens | desc_tokens) & tag_keywords)
+        cat_affinity = 3.0 * len(cat_overlap)
+        # 3) On-topic guard — exhibitors that aren't tagged as a
+        #    boardgame-relevant category get heavily penalised.
         ex_cats = set(m["exhibitor"].get("categories") or [])
         on_topic = (not ex_cats) or bool(ex_cats & BOARDGAME_CATS)
+        raw = pub_score + cat_affinity
+        final = raw if on_topic else raw * 0.3
         recommendations.append({
             "exhibitor": m["exhibitor"],
             "games": m["games"],
             "matched_publishers": m["matched_pubs"],
+            "matched_categories": cat_overlap,
             "total_plays": m["total_plays"],
-            "raw_score": raw,
-            "score": raw if on_topic else round(raw * 0.3),
+            "publisher_score": round(pub_score, 1),
+            "category_affinity": len(cat_overlap),
+            "raw_score": round(raw, 1),
+            "score": round(final, 1),
             "on_topic": on_topic,
         })
     recommendations.sort(key=lambda r: (-r["score"], -len(r["games"]), r["exhibitor"]["name"].lower()))
     for i, r in enumerate(recommendations, 1):
         r["rank"] = i
 
-    # ---- Discovery: top categories/mechanics × untouched exhibitors
-    cat_w, mech_w = {}, {}
-    for g in collection:
-        w = (g.get("plays") or 0) + 1
-        for c in g.get("categories", []):
-            cat_w[c] = cat_w.get(c, 0) + w
-        for mc in g.get("mechanics", []):
-            mech_w[mc] = mech_w.get(mc, 0) + w
-    top_cats = sorted(cat_w.items(), key=lambda x: -x[1])[:8]
-    top_mechs = sorted(mech_w.items(), key=lambda x: -x[1])[:8]
-    tag_keywords = set()
-    for c, _ in top_cats:
-        tag_keywords |= set(tokens_of(c))
-    for mc, _ in top_mechs:
-        tag_keywords |= set(tokens_of(mc))
-    tag_keywords -= STOPWORDS
-
+    # ---- Discovery: top categories/mechanics × untouched exhibitors. Uses
+    # the taste signal (top_cats / top_mechs / tag_keywords) computed above.
     matched_slugs = {r["exhibitor"]["slug"] for r in recommendations}
     PUB_CATS = {"Games Publisher", "Board Games", "Card Games", "Family Games", "Party Games"}
     discovery = []
