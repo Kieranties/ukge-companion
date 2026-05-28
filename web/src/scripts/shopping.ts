@@ -174,7 +174,7 @@ export function buildShopping() {
       : '';
     html += `<section class="shop-booth" data-slug="${esc(slug)}">
       <header class="shop-booth-head">
-        <h3><a href="${esc(info.url)}" target="_blank" rel="noopener">${esc(info.name)}</a></h3>
+        <h3><a href="${esc(info.url)}" target="_blank" rel="noopener" data-action="open-vendor-card" data-vendor-slug="${esc(slug)}" title="Open ${esc(info.name)} in app">${esc(info.name)}</a></h3>
         <div class="shop-booth-loc">
           <span class="hall">${esc(info.hall)}</span>
           ${standLink}

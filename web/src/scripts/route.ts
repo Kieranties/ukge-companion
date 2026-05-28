@@ -141,7 +141,7 @@ function renderStop(s: Stop, dayFilter: string): string {
   return `<div class="route-stop ${cls}" data-slug="${esc(s.slug)}">
     <div class="route-stop-main">
       ${standCell}
-      <span class="stop-name"><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a>${dayBadge}</span>
+      <span class="stop-name"><a href="${esc(s.url)}" target="_blank" rel="noopener" data-action="open-vendor-card" data-vendor-slug="${esc(s.slug)}" title="Open ${esc(s.name)} in app">${esc(s.name)}</a>${dayBadge}</span>
       <span class="stop-actions">
         <button class="route-act visit ${s.status === 'visited' ? 'on' : ''} ${s.status === 'revisit' ? 'revisit' : ''}" data-action="toggle-visit" type="button" title="Mark visited / revisit">${visitLabel}</button>
         <button class="route-act buy ${s.buy ? 'on' : ''}" data-action="toggle-buy" type="button" title="Buy from this stand">🛒</button>
