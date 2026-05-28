@@ -90,10 +90,51 @@ function buildMarkdown(): string {
     lines.push('');
   }
   const dayLabels: Record<string, string> = { any: 'Any day', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' };
+  // Pre-collect attending events for each specific day. Read metadata off
+  // the rendered .event-card so the export uses the same source of truth
+  // as the rest of the app.
+  function attendingEventsFor(day: string): Array<{ id: string; title: string; time: string; category: string; exhibitor: string; notes?: string; timeKey: [number, number] }> {
+    const out = [];
+    for (const id of Object.keys(store.events)) {
+      if (!store.isAttendingDay(id, day)) continue;
+      const card = document.querySelector<HTMLElement>(`.event-card[data-event-id="${CSS.escape(id)}"]`);
+      if (!card) continue;
+      const days = (card.dataset.days || '').split(/\s+/);
+      if (!days.includes(day)) continue;
+      const time = card.dataset.time || '';
+      const m = time.match(/(\d{1,2})[:.](\d{2})/);
+      out.push({
+        id,
+        title: card.dataset.title || '',
+        time,
+        category: card.dataset.category || '',
+        exhibitor: card.dataset.exhibitorName || '',
+        notes: store.getEvent(id).notes,
+        timeKey: m ? [parseInt(m[1], 10), parseInt(m[2], 10)] as [number, number] : [99, 99] as [number, number],
+      });
+    }
+    out.sort((a, b) => a.timeKey[0] - b.timeKey[0] || a.timeKey[1] - b.timeKey[1] || a.title.localeCompare(b.title));
+    return out;
+  }
+
   for (const d of ['any', 'fri', 'sat', 'sun']) {
     const items = Object.entries(store.data).filter(([, v]) => v.day === d && !v.skipped);
-    if (!items.length) continue;
+    const events = d === 'any' ? [] : attendingEventsFor(d);
+    if (!items.length && !events.length) continue;
     lines.push(`## ${dayLabels[d]} plan`);
+    if (events.length) {
+      lines.push(`### 📅 Events (${events.length})`);
+      for (const ev of events) {
+        const where = ev.exhibitor ? ` — at **${ev.exhibitor}**` : '';
+        const cat = ev.category ? ` _(${ev.category})_` : '';
+        lines.push(`- **${ev.time || '—'}** ${ev.title}${where}${cat}`);
+        if (ev.notes && ev.notes.trim()) for (const ln of ev.notes.split(/\r?\n/)) lines.push(`  - ${ln}`);
+      }
+      if (items.length) {
+        lines.push('');
+        lines.push(`### 🏪 Stands (${items.length})`);
+      }
+    }
     for (const [slug, v] of items) {
       const i = lookup(slug);
       const tags = [
@@ -132,12 +173,16 @@ function buildMarkdown(): string {
     }
     lines.push('');
   }
+  const anyEventTracked = Object.keys(store.events).some(
+    (id) => store.isAttendingAny(id) || (store.getEvent(id).notes || '').trim()
+  );
   if (
     visited.length === 0 &&
     revisit.length === 0 &&
     buying.length === 0 &&
     hidden.length === 0 &&
-    notesOnly.length === 0
+    notesOnly.length === 0 &&
+    !anyEventTracked
   ) {
     lines.push('*Nothing tracked yet.*');
   }
