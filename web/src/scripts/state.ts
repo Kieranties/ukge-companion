@@ -32,19 +32,34 @@ export interface BoothEntry {
 }
 
 const KEY = 'ukge-companion-state-v1';
+const EVENT_KEY = 'ukge-companion-events-v1';
+
+export interface EventEntry {
+  attending?: boolean;
+  attendingAt?: string;
+  notes?: string;
+}
 
 class StateStore {
   data: Record<string, BoothEntry>;
+  events: Record<string, EventEntry>;
   listeners = new Set<() => void>();
 
   constructor() {
     let initial: Record<string, BoothEntry> = {};
+    let initialEvents: Record<string, EventEntry> = {};
     try {
       initial = JSON.parse(localStorage.getItem(KEY) || '{}');
     } catch {
       /* corrupt JSON */
     }
+    try {
+      initialEvents = JSON.parse(localStorage.getItem(EVENT_KEY) || '{}');
+    } catch {
+      /* corrupt JSON */
+    }
     this.data = initial;
+    this.events = initialEvents;
   }
 
   get(slug: string): BoothEntry {
@@ -181,6 +196,32 @@ class StateStore {
     return n;
   }
 
+  // ---- events ------------------------------------------------------------
+
+  getEvent(id: string): EventEntry {
+    return this.events[id] || {};
+  }
+
+  private updateEvent(id: string, patch: EventEntry): void {
+    const cur = { ...this.getEvent(id), ...patch };
+    for (const k of Object.keys(cur) as (keyof EventEntry)[]) {
+      if (cur[k] === undefined || cur[k] === false || cur[k] === '') delete cur[k];
+    }
+    if (Object.keys(cur).length === 0) delete this.events[id];
+    else this.events[id] = cur;
+    this.persist();
+  }
+
+  toggleAttending(id: string): void {
+    const e = this.getEvent(id);
+    if (e.attending) this.updateEvent(id, { attending: undefined, attendingAt: undefined });
+    else this.updateEvent(id, { attending: true, attendingAt: new Date().toISOString() });
+  }
+
+  setEventNotes(id: string, notes: string): void {
+    this.updateEvent(id, { notes: notes.trim() ? notes : undefined });
+  }
+
   subscribe(fn: () => void): () => void {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
@@ -189,6 +230,7 @@ class StateStore {
   private persist(): void {
     try {
       localStorage.setItem(KEY, JSON.stringify(this.data));
+      localStorage.setItem(EVENT_KEY, JSON.stringify(this.events));
     } catch {
       toast('Storage failed — notes may not persist');
     }

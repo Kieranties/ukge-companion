@@ -20,6 +20,12 @@ const DAY_LABEL: Record<string, string> = {
   sun: 'Sun',
 };
 
+const DAY_FULL: Record<string, string> = {
+  fri: 'Friday',
+  sat: 'Saturday',
+  sun: 'Sunday',
+};
+
 function standSortKey(stand: string): [number, string] {
   if (!stand) return [9999, ''];
   const m = stand.match(/\d+/);
@@ -111,6 +117,81 @@ function readDayFilter(): string {
   );
 }
 
+interface RouteEvent {
+  id: string;
+  title: string;
+  category: string;
+  time: string;
+  days: string[];
+  exhibitorSlug: string;
+  exhibitorName: string;
+  url: string;
+  notes?: string;
+  // Sort key: parsed start hour/min, defaulting to end-of-day if absent.
+  timeKey: [number, number];
+}
+
+function parseTimeKey(t: string): [number, number] {
+  const m = t.match(/(\d{1,2})[:.](\d{2})/);
+  if (!m) return [99, 99];
+  return [parseInt(m[1], 10), parseInt(m[2], 10)];
+}
+
+function collectAttendingEvents(): RouteEvent[] {
+  const out: RouteEvent[] = [];
+  for (const [id, e] of Object.entries(store.events)) {
+    if (!e.attending) continue;
+    const card = document.querySelector<HTMLElement>(`.event-card[data-event-id="${CSS.escape(id)}"]`);
+    if (!card) continue;
+    const dayCodes = (card.dataset.days || '').split(/\s+/).filter(Boolean);
+    out.push({
+      id,
+      title: card.dataset.title || '',
+      category: card.dataset.category || '',
+      time: card.dataset.time || '',
+      days: dayCodes,
+      exhibitorSlug: card.dataset.exhibitorSlug || '',
+      exhibitorName: card.dataset.exhibitorName || '',
+      url: card.querySelector<HTMLAnchorElement>('.event-title a')?.href || '',
+      notes: e.notes,
+      timeKey: parseTimeKey(card.dataset.time || ''),
+    });
+  }
+  return out;
+}
+
+function renderRouteEvent(e: RouteEvent): string {
+  const exhibitorChip = e.exhibitorSlug
+    ? `<a class="route-event-stand" href="https://www.ukgamesexpo.co.uk/whats-on/show/exhibitors/${esc(e.exhibitorSlug)}/" target="_blank" rel="noopener" data-action="open-vendor-card" data-vendor-slug="${esc(e.exhibitorSlug)}" title="Open ${esc(e.exhibitorName)} in app">🏪 ${esc(e.exhibitorName)}</a>`
+    : '';
+  const hasNotes = !!(e.notes && e.notes.trim());
+  return `<div class="route-event-stop" data-event-id="${esc(e.id)}">
+    <div class="route-event-main">
+      <span class="route-event-time">${esc(e.time || '—')}</span>
+      <span class="route-event-title"><a href="${esc(e.url || '#')}" target="_blank" rel="noopener">${esc(e.title)}</a></span>
+      <span class="route-event-actions">
+        <button class="route-act notes ${hasNotes ? 'on' : ''}" data-action="toggle-event-notes" type="button" title="Notes">✎</button>
+        <button class="route-act unattend" data-action="toggle-attending" type="button" title="Remove from plan">✕</button>
+      </span>
+    </div>
+    ${exhibitorChip ? `<div class="route-event-meta">${exhibitorChip}<span class="route-event-cat">${esc(e.category)}</span></div>` : `<div class="route-event-meta"><span class="route-event-cat">${esc(e.category)}</span></div>`}
+    <div class="notes-area hidden" data-role="event-notes">
+      <textarea data-role="event-notes-text" placeholder="Notes for this event — saved on your device only">${esc(e.notes || '')}</textarea>
+    </div>
+  </div>`;
+}
+
+function renderEventsForDay(events: RouteEvent[], dayCode: string): string {
+  const items = events
+    .filter((e) => e.days.includes(dayCode))
+    .sort((a, b) => a.timeKey[0] - b.timeKey[0] || a.timeKey[1] - b.timeKey[1] || a.title.localeCompare(b.title));
+  if (items.length === 0) return '';
+  return `<div class="route-events">
+    <h3>${DAY_FULL[dayCode]} events <span class="hall-count">${items.length} pinned</span></h3>
+    ${items.map(renderRouteEvent).join('')}
+  </div>`;
+}
+
 const DAY_BADGE: Record<string, string> = {
   any: 'Any day',
   fri: 'Fri',
@@ -181,12 +262,17 @@ export function buildRoute() {
     return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
   });
 
-  if (halls.length === 0) {
+  const attendingEvents = collectAttendingEvents().filter((e) => {
+    if (dayFilter === 'any') return true;
+    return e.days.includes(dayFilter);
+  });
+
+  if (halls.length === 0 && attendingEvents.length === 0) {
     let msg: string;
     if (dayFilter !== 'any') {
-      msg = `Nothing planned for <strong>${DAY_LABEL[dayFilter]}</strong>. Tap <em>Add to plan</em> on any exhibitor card and cycle to ${DAY_LABEL[dayFilter]} to fill this list.`;
+      msg = `Nothing planned for <strong>${DAY_LABEL[dayFilter]}</strong>. Tap <em>Add to plan</em> on any exhibitor card and cycle to ${DAY_LABEL[dayFilter]} to fill this list. Mark <em>Going</em> on any event to pin it here too.`;
     } else {
-      msg = `Your route is empty. Tap <em>+ Add to plan</em> on any exhibitor card (in For you, Discover, or Browse all) to add them here. The button cycles: Any day → Friday → Saturday → Sunday.`;
+      msg = `Your route is empty. Tap <em>+ Add to plan</em> on any exhibitor card (in For you, Discover, or Browse all), or <em>Going</em> on any event, to fill this list.`;
     }
     root.innerHTML = `<div class="route-empty">${msg}</div>`;
     return;
@@ -196,6 +282,10 @@ export function buildRoute() {
   if (dayFilter !== 'any') {
     html += `<p class="route-filter-note">Showing <strong>${DAY_LABEL[dayFilter]}</strong> stops only — pick <strong>Any</strong> in the day filter above to see everything.</p>`;
   }
+  // Pinned events block(s) at the top of each applicable day.
+  const eventDays = dayFilter === 'any' ? ['fri', 'sat', 'sun'] : [dayFilter];
+  for (const d of eventDays) html += renderEventsForDay(attendingEvents, d);
+
   for (const hall of halls) {
     const list = groups[hall].sort((a, b) =>
       a.sortKey[0] - b.sortKey[0] || a.sortKey[1].localeCompare(b.sortKey[1])

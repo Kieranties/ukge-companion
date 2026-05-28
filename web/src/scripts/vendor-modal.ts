@@ -25,6 +25,11 @@ export function wireVendorModal() {
     const src = findCard(slug);
     if (!src) return false;
     const clone = src.cloneNode(true) as HTMLElement;
+    // The source card may be hidden by the active filter (status/day/tag) —
+    // that hidden state must not travel into the modal, or the body renders
+    // as an empty box with just the close button.
+    clone.classList.remove('hidden');
+    clone.style.removeProperty('display');
     // Strip details/notes open state inherited from the source card so the
     // modal opens in a tidy default shape.
     clone.querySelectorAll<HTMLDetailsElement>('details[open]').forEach((d) => (d.open = false));

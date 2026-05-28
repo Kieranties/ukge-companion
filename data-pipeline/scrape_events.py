@@ -24,6 +24,15 @@ OUT = ROOT / "events.json"
 BASE = "https://www.ukgamesexpo.co.uk/events/"
 UA = "Mozilla/5.0 (UKGE Companion build script; +https://github.com/Kieranties/ukge-companion)"
 
+# Some categories aren't included in the unfiltered /events/ listing — the
+# big ones being Demo-on-stand (~335) and Presentation-on-stand (~44), which
+# are the events most likely to carry a structured Stand field. We walk them
+# explicitly and union by event id so nothing gets counted twice.
+EXTRA_CATEGORIES = [
+    (5, "Demo-on-stand"),
+    (10, "Presentation-on-stand"),
+]
+
 
 def fetch(url, retries=2):
     req = urllib.request.Request(url, headers={"User-Agent": UA})
@@ -145,31 +154,149 @@ def parse_page(html):
     return out
 
 
+# ---- detail-page enrichment -------------------------------------------------
+
+META_HEADER_RE = re.compile(r'<div class="meta-box__header">\s*([^<]+)</div>')
+META_ITEM_RE = re.compile(
+    r'<div class="meta-item__title">\s*([^<]+?)\s*</div>\s*'
+    r'<div class="meta-item__content">(.*?)</div>',
+    re.DOTALL,
+)
+DESC_RE = re.compile(
+    r'<div class="product__description rich-text">\s*<h2[^>]*>Description</h2>\s*<div class="rich-text">(.*?)</div>\s*</div>',
+    re.DOTALL,
+)
+# Stand field comes in as "Mind Burp Games (3-260)" for exhibitor events.
+# Capture name and hall-stand separately.
+STAND_RE = re.compile(r"^(.+?)\s*\((\d+[A-Za-z]?)\s*-\s*([^)]+)\)\s*$")
+
+
+def parse_detail(html):
+    """Pull the meta-box fields and a long description out of an event detail
+    page. Returns a dict suitable for merging into the listing card.
+    """
+    out = {
+        "event_type": None,       # "Exhibitor Event" / "Workshops" / etc — the meta-box header
+        "stand_name": None,       # Exhibitor name as written on the detail page
+        "stand_hall": None,       # e.g. "3"
+        "stand_code": None,       # e.g. "260"
+        "stand_label": None,      # raw "Mind Burp Games (3-260)" / "Hilton - Churchill room"
+        "system": None,           # RPG system, if any
+        "gm": None,
+        "description_full": None,
+        "extra_meta": {},         # any meta-item titles we don't recognise
+    }
+    if (h := META_HEADER_RE.search(html)):
+        out["event_type"] = html_mod.unescape(h.group(1)).strip()
+    for m in META_ITEM_RE.finditer(html):
+        title = m.group(1).strip()
+        content = strip_tags(m.group(2))
+        if not content:
+            continue
+        key = title.lower()
+        if key == "stand":
+            out["stand_label"] = content
+            if (sm := STAND_RE.match(content)):
+                out["stand_name"] = sm.group(1).strip()
+                out["stand_hall"] = sm.group(2).strip()
+                out["stand_code"] = sm.group(3).strip()
+        elif key == "system":
+            out["system"] = content
+        elif key == "gm":
+            out["gm"] = content
+        elif key in ("days", "time"):
+            # Already on the listing card — skip
+            continue
+        else:
+            out["extra_meta"][title] = content
+    if (d := DESC_RE.search(html)):
+        text = strip_tags(d.group(1))
+        # Cap at a sensible length; CSS handles overflow ellipsis elsewhere.
+        if len(text) > 1200:
+            text = text[:1200].rsplit(" ", 1)[0] + "…"
+        out["description_full"] = text or None
+    return out
+
+
+def fetch_detail(event_id, slug):
+    url = f"https://www.ukgamesexpo.co.uk/events/{event_id}-{slug}/"
+    return parse_detail(fetch(url))
+
+
+def enrich_events(events, max_workers=4):
+    """Walk every event and merge in detail-page fields. Polite concurrency.
+
+    A partial failure on a single event isn't fatal — that event keeps its
+    listing-page fields and gets no detail enrichment.
+    """
+    total = len(events)
+    done = 0
+    errs = 0
+
+    def task(ev):
+        try:
+            return ev["id"], fetch_detail(ev["id"], ev["slug"]), None
+        except Exception as e:
+            return ev["id"], None, e
+
+    enriched_by_id = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        futs = [pool.submit(task, ev) for ev in events]
+        for fut in as_completed(futs):
+            eid, detail, err = fut.result()
+            done += 1
+            if err:
+                errs += 1
+                print(f"  [{done:3d}/{total}] {eid}: ERROR {err}")
+            else:
+                enriched_by_id[eid] = detail
+            if done % 25 == 0:
+                print(f"  [{done:3d}/{total}] ok ({errs} errors)")
+
+    for ev in events:
+        d = enriched_by_id.get(ev["id"])
+        if d:
+            ev.update(d)
+    print(f"detail fetch: {done - errs}/{total} ok, {errs} errors")
+    return events
+
+
 # ---- entry ------------------------------------------------------------------
 
-def main():
-    print(f"fetching {BASE}?page=1 ...")
-    first = fetch(BASE + "?page=1")
+def fetch_all_pages(url_template, label):
+    """Walk every page for a single events listing URL.
+
+    `url_template` must contain a {page} placeholder.
+    """
+    print(f"fetching {label} ...")
+    first = fetch(url_template.format(page=1))
     n_pages = total_pages(first)
     print(f"  {n_pages} pages")
-
     pages = {1: first}
     if n_pages > 1:
         def fetch_page(n):
-            return n, fetch(f"{BASE}?page={n}")
+            return n, fetch(url_template.format(page=n))
         with ThreadPoolExecutor(max_workers=4) as pool:
             futs = [pool.submit(fetch_page, n) for n in range(2, n_pages + 1)]
             for fut in as_completed(futs):
                 n, html = fut.result()
                 pages[n] = html
-                print(f"  page {n} ok")
+    events = []
+    for n in sorted(pages):
+        events.extend(parse_page(pages[n]))
+    return events
+
+
+def main():
+    sources = [(BASE + "?page={page}", "global /events/")]
+    for cid, name in EXTRA_CATEGORIES:
+        sources.append((f"{BASE}?page={{page}}&category={cid}", f"category={cid} ({name})"))
 
     all_events = []
-    for n in sorted(pages):
-        events = parse_page(pages[n])
+    for tmpl, label in sources:
+        events = fetch_all_pages(tmpl, label)
+        print(f"  {label}: {len(events)} events")
         all_events.extend(events)
-        if n == 1:
-            print(f"  page 1 -> {len(events)} events")
 
     seen = set()
     deduped = []
@@ -185,6 +312,12 @@ def main():
         by_cat[e["category"] or "(uncategorised)"] = by_cat.get(e["category"] or "(uncategorised)", 0) + 1
     for cat, n in sorted(by_cat.items(), key=lambda x: -x[1]):
         print(f"  {n:4d}  {cat}")
+
+    print(f"\nfetching detail pages for {len(deduped)} events ...")
+    enrich_events(deduped)
+
+    stand_events = sum(1 for e in deduped if e.get("stand_name"))
+    print(f"  events with structured Stand field: {stand_events}/{len(deduped)}")
 
     OUT.write_text(json.dumps(deduped, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\nwrote {OUT} ({OUT.stat().st_size:,} bytes)")

@@ -35,6 +35,10 @@ const haystack = [
   data-category={e.category || ''}
   data-days={dayCodes}
   data-name={(e.title || '').toLowerCase()}
+  data-title={e.title || ''}
+  data-time={e.time || ''}
+  data-exhibitor-slug={e.exhibitor_slug || ''}
+  data-exhibitor-name={e.exhibitor_name || ''}
   data-haystack={haystack}
 >
   <header class="event-card-head">
@@ -62,4 +66,11 @@ const haystack = [
     )}
     {e.price && <span class="event-price">{e.price}</span>}
   </footer>
+  <div class="event-tools">
+    <button class="booth-btn attend-btn" data-action="toggle-attending" type="button">Going</button>
+    <button class="booth-btn notes-toggle" data-action="toggle-event-notes" type="button">Notes</button>
+  </div>
+  <div class="notes-area hidden" data-role="event-notes">
+    <textarea data-role="event-notes-text" placeholder="Notes for this event — saved on your device only"></textarea>
+  </div>
 </article>

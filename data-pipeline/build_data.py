@@ -549,21 +549,55 @@ def main():
             return (99, 99)
         return (int(m.group(1)), int(m.group(2)))
 
+    # Index exhibitors by hall+stand for verification of detail-page links.
+    by_hall_stand = {}
+    for ex in exhibitors:
+        hall = (ex.get("hall") or "").strip()
+        stand = (ex.get("stand") or "").strip()
+        if hall and stand:
+            # Hall on UKGE listings reads as "Hall 3"; detail page Stand
+            # field uses "3-260". Normalise both to the bare hall number.
+            hnum = re.sub(r"[^0-9A-Za-z]", "", hall).lower()
+            hnum = re.sub(r"^hall", "", hnum)
+            by_hall_stand[(hnum, stand)] = ex
+
     events = []
     for e in events_raw:
         title = e.get("title") or ""
-        # Try the title as-is, then a shortened lead (before the first colon)
-        candidates = [title]
-        if ":" in title:
-            candidates.insert(0, title.split(":", 1)[0])
         exhibitor_slug = None
         exhibitor_name = None
-        for cand in candidates:
-            ex, _ = match_publisher(cand, by_full, by_toks)
+        link_source = None  # diagnostic: how we found it
+
+        # 1) Strongest: detail-page Stand field, parsed into (name, hall, code).
+        stand_name = e.get("stand_name")
+        stand_hall = e.get("stand_hall")
+        stand_code = e.get("stand_code")
+        if stand_name:
+            ex, _ = match_publisher(stand_name, by_full, by_toks)
             if ex:
                 exhibitor_slug = ex["slug"]
                 exhibitor_name = ex["name"]
-                break
+                link_source = "stand_name"
+        # 2) Fallback: hall + stand code direct lookup.
+        if not exhibitor_slug and stand_hall and stand_code:
+            ex = by_hall_stand.get((stand_hall.lower(), stand_code))
+            if ex:
+                exhibitor_slug = ex["slug"]
+                exhibitor_name = ex["name"]
+                link_source = "hall_stand"
+        # 3) Last resort: fuzzy match on the event title (the old heuristic).
+        if not exhibitor_slug:
+            candidates = [title]
+            if ":" in title:
+                candidates.insert(0, title.split(":", 1)[0])
+            for cand in candidates:
+                ex, _ = match_publisher(cand, by_full, by_toks)
+                if ex:
+                    exhibitor_slug = ex["slug"]
+                    exhibitor_name = ex["name"]
+                    link_source = "title"
+                    break
+
         days = e.get("days") or []
         events.append({
             "id": e.get("id"),
@@ -571,13 +605,19 @@ def main():
             "url": e.get("url"),
             "title": title,
             "category": e.get("category"),
+            "event_type": e.get("event_type"),
             "subtitle": e.get("subtitle"),
+            "description_full": e.get("description_full"),
             "price": e.get("price"),
             "image": e.get("image"),
             "days": days,
             "time": e.get("time"),
+            "stand_label": e.get("stand_label"),
+            "system": e.get("system"),
+            "gm": e.get("gm"),
             "exhibitor_slug": exhibitor_slug,
             "exhibitor_name": exhibitor_name,
+            "link_source": link_source,
             # Sort key: first day, then start time. Multi-day events
             # surface under their earliest day; the UI splits them across
             # day buckets at render time.
