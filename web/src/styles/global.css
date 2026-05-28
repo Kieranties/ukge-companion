@@ -1933,28 +1933,6 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   font-weight: 600;
 }
 
-/* ---------- Tag clouds --------------------------------------------------- */
-.tag-cloud {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  box-shadow: var(--shadow);
-}
-.tag-cloud + .tag-cloud {
-  margin-top: 10px;
-}
-.tag-cloud .tag {
-  display: inline-block;
-  margin: 4px 8px 4px 0;
-  color: var(--ink);
-  font-size: 13px;
-}
-.tag-cloud .tag-w {
-  color: var(--ink-dim);
-  font-size: 11px;
-}
-
 /* ---------- Modals ------------------------------------------------------- */
 .modal {
   position: fixed;

@@ -307,20 +307,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         </div>
       </div>
     </section>
-    <section>
-      <div class="section-head">
-        <h2>Your taste signal</h2>
-        <p class="lede">Top categories and mechanics across your collection, weighted by plays.</p>
-      </div>
-      <div class="tag-cloud">
-        <strong style="color:var(--accent)">Categories:</strong>
-        {data.top_categories.map((c) => <span class="tag"> {c.name} <span class="tag-w">{c.weight}</span></span>)}
-      </div>
-      <div class="tag-cloud">
-        <strong style="color:var(--accent)">Mechanics:</strong>
-        {data.top_mechanics.map((m) => <span class="tag"> {m.name} <span class="tag-w">{m.weight}</span></span>)}
-      </div>
-    </section>
   </div>
 
   <footer>
