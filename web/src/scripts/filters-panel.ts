@@ -21,11 +21,13 @@ interface CardSnapshot {
   values: Partial<Record<FacetKey, string[]>>;
 }
 
+// Award is intentionally absent — awards are per-game, not per-vendor, so
+// they don't make sense as a vendor-listing filter. (If we ever build a
+// "filter Hot games" panel, that's the place for an Award facet.)
 const BROWSABLE_FACETS: { key: FacetKey; label: string; attr: keyof DOMStringMap; multi: boolean }[] = [
   { key: 'category', label: 'Category', attr: 'tagCategories', multi: true },
   { key: 'publisher', label: 'Publisher', attr: 'tagPublishers', multi: true },
   { key: 'hall', label: 'Hall', attr: 'hall', multi: false },
-  { key: 'award', label: 'Award', attr: 'award', multi: false },
 ];
 
 let cardSnapshots: CardSnapshot[] = [];
@@ -40,29 +42,32 @@ function escapeAttr(s: string): string {
 }
 
 function snapshotCards(): CardSnapshot[] {
-  // Use only the canonical "all-vendors" listing so each exhibitor counts
-  // once. Recommendation/hot-game/discovery panels are duplicates of the
-  // same underlying booths and would double-count otherwise.
-  const cards = document.querySelectorAll<HTMLElement>(
-    '.panel[data-panel="browse"] .card[data-slug], .panel[data-panel="hot"] .card[data-slug="hot-"]'
+  // One snapshot per exhibitor slug, with values merged across card kinds.
+  // The Browse-all card has the canonical category + hall info but no
+  // publisher matches; the For-you card carries data-tag-publishers but
+  // only for booths that matched the user's collection. We merge so the
+  // publisher facet has values (drawn from For-you) and the category facet
+  // covers every vendor (drawn from Browse).
+  const all = document.querySelectorAll<HTMLElement>(
+    '.panel[data-panel="browse"] .card[data-slug], .panel[data-panel="for-you"] .card[data-slug]'
   );
-  // Fall back to a broader query when the browse panel hasn't rendered (the
-  // panel is built statically by Astro so this is essentially always non-empty).
-  const list = cards.length > 0 ? cards : document.querySelectorAll<HTMLElement>('.card[data-slug]');
-  const snaps: CardSnapshot[] = [];
-  const seen = new Set<string>();
+  const list = all.length > 0 ? all : document.querySelectorAll<HTMLElement>('.card[data-slug]');
+  const bySlug = new Map<string, Partial<Record<FacetKey, string[]>>>();
   for (const card of list) {
     const slug = card.dataset.slug || '';
-    if (seen.has(slug)) continue;
-    seen.add(slug);
-    const values: Partial<Record<FacetKey, string[]>> = {};
+    if (!slug) continue;
+    const merged = bySlug.get(slug) || {};
     for (const f of BROWSABLE_FACETS) {
       const raw = (card.dataset[f.attr as string] as string) || '';
-      values[f.key] = f.multi ? raw.split('|').filter(Boolean) : raw ? [raw] : [];
+      const next = f.multi ? raw.split('|').filter(Boolean) : raw ? [raw] : [];
+      // Prefer non-empty values — Browse cards have categories but no
+      // publishers, For-you cards have both. Take the longer list per facet.
+      const cur = merged[f.key] || [];
+      merged[f.key] = next.length > cur.length ? next : cur;
     }
-    snaps.push({ values });
+    bySlug.set(slug, merged);
   }
-  return snaps;
+  return [...bySlug.values()].map((values) => ({ values }));
 }
 
 function cardPassesAllExcept(card: CardSnapshot, exceptFacet: FacetKey): boolean {
