@@ -3,6 +3,7 @@
 // visit/buy/skip/notes controls. Honours the global day filter — if the
 // user has Fri/Sat/Sun selected, only stops assigned to that day appear.
 import { store } from './state';
+import { openPlanPicker } from './cards';
 
 const HALL_ORDER = [
   'Hall One',
@@ -176,7 +177,7 @@ function renderRouteEvent(e: RouteEvent, dayCode: string): string {
       <span class="route-event-title"><a href="${esc(e.url || '#')}" target="_blank" rel="noopener">${esc(e.title)}</a></span>
       <span class="route-event-actions">
         <button class="route-act notes ${hasNotes ? 'on' : ''}" data-action="toggle-event-notes" type="button" title="Notes">✎</button>
-        <button class="route-act unattend" data-action="toggle-attending-day" data-day="${esc(dayCode)}" type="button" title="Remove from this day">✕</button>
+        <button class="route-act going" data-action="open-going-picker" type="button" title="Change days">Days…</button>
       </span>
     </div>
     ${exhibitorChip ? `<div class="route-event-meta">${exhibitorChip}<span class="route-event-cat">${esc(e.category)}</span></div>` : `<div class="route-event-meta"><span class="route-event-cat">${esc(e.category)}</span></div>`}
@@ -219,7 +220,7 @@ function renderStop(s: Stop, dayFilter: string): string {
   const visitLabel = s.status === 'revisit' ? '★' : s.status === 'visited' ? '✓' : 'Mark';
   const hasNotes = !!(s.notes && s.notes.trim());
   const dayBadge = s.day
-    ? `<button class="route-day-badge" data-action="cycle-plan" type="button" title="Tap to change plan day — cycles Any → Fri → Sat → Sun → off">${DAY_BADGE[s.day]}</button>`
+    ? `<button class="route-day-badge" data-action="open-plan-picker" type="button" title="Change plan day">${DAY_BADGE[s.day]}</button>`
     : '';
 
   const descBlock = s.description ? `<div class="route-stop-desc">${esc(s.description)}</div>` : '';
@@ -318,7 +319,7 @@ function wireRouteInteractions() {
     if (action === 'toggle-visit') store.cycleVisit(slug);
     else if (action === 'toggle-buy') store.toggleBuy(slug);
     else if (action === 'toggle-skip') store.toggleSkip(slug);
-    else if (action === 'cycle-plan') store.cyclePlan(slug);
+    else if (action === 'open-plan-picker') openPlanPicker(btn, slug);
     else if (action === 'toggle-notes') {
       const area = stop!.querySelector<HTMLElement>('[data-role="notes"]');
       area?.classList.toggle('hidden');

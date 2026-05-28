@@ -1,6 +1,7 @@
 // Wire up every card's booth-tools UI (visit / buy / skip / day / notes)
 // to the central state store.
-import { store, type BoothEntry } from './state';
+import { store, type BoothEntry, type PlanDay } from './state';
+import { openPopover } from './popover';
 
 const PLAN_LABEL: Record<string, string> = {
   any: 'Planned · Any day',
@@ -8,6 +9,37 @@ const PLAN_LABEL: Record<string, string> = {
   sat: '🗓 Saturday',
   sun: '🗓 Sunday',
 };
+
+const PLAN_PICKER_OPTIONS: { value: PlanDay; label: string }[] = [
+  { value: 'any', label: 'Any day' },
+  { value: 'fri', label: 'Friday' },
+  { value: 'sat', label: 'Saturday' },
+  { value: 'sun', label: 'Sunday' },
+];
+
+function openPlanPicker(trigger: HTMLElement, slug: string) {
+  const e = store.get(slug);
+  openPopover({
+    trigger,
+    title: 'Add to plan…',
+    mode: 'single',
+    options: PLAN_PICKER_OPTIONS.map((o) => ({
+      label: o.label,
+      value: o.value,
+      selected: e.day === o.value,
+    })),
+    removeLabel: e.day ? 'Remove from plan' : undefined,
+    onSelect: (val) => {
+      if (val === null) {
+        if (e.day) store.setDay(slug, undefined);
+        return;
+      }
+      store.setDay(slug, val as PlanDay);
+    },
+  });
+}
+
+export { openPlanPicker };
 
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
@@ -78,7 +110,7 @@ function syncCard(card: HTMLElement, e: BoothEntry) {
     s.textContent = e.skipped ? 'Hidden' : 'Hide';
     s.classList.toggle('on', !!e.skipped);
   }
-  const p = card.querySelector<HTMLButtonElement>('[data-action="cycle-plan"]');
+  const p = card.querySelector<HTMLButtonElement>('[data-action="open-plan-picker"]');
   if (p) {
     p.textContent = e.day ? PLAN_LABEL[e.day] : '+ Add to plan';
     p.classList.toggle('on', !!e.day);
@@ -126,7 +158,8 @@ export function wireAllCards() {
     if (btn.closest('#route-plan')) return;
     const slug = card.dataset.slug!;
     const action = btn.dataset.action;
-    if (action === 'cycle-plan') store.cyclePlan(slug);
+    if (action === 'open-plan-picker') openPlanPicker(btn, slug);
+    else if (action === 'cycle-plan') store.cyclePlan(slug); // route's day badge (legacy)
     else if (action === 'toggle-visit') store.cycleVisit(slug);
     else if (action === 'toggle-buy') store.toggleBuy(slug);
     else if (action === 'toggle-skip') store.toggleSkip(slug);

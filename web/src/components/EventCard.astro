@@ -67,16 +67,7 @@ const haystack = [
     {e.price && <span class="event-price">{e.price}</span>}
   </footer>
   <div class="event-tools">
-    {(e.days || []).length === 1 ? (
-      <button class="booth-btn attend-btn" data-action="toggle-attending-day" data-day={(e.days[0] || '').slice(0,3).toLowerCase()} type="button">Going</button>
-    ) : (
-      <span class="attend-days">
-        <span class="attend-label">Going:</span>
-        {(e.days || []).map((d) => (
-          <button class="booth-btn attend-btn attend-day-btn" data-action="toggle-attending-day" data-day={d.slice(0,3).toLowerCase()} type="button">{d.slice(0,3)}</button>
-        ))}
-      </span>
-    )}
+    <button class="booth-btn attend-btn" data-action="open-going-picker" type="button">Going</button>
     <button class="booth-btn notes-toggle" data-action="toggle-event-notes" type="button">Notes</button>
   </div>
   <div class="notes-area hidden" data-role="event-notes">

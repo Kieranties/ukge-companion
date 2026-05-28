@@ -2334,6 +2334,72 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   margin-top: 4px;
 }
 
+/* ---------- Popover (Going / Plan day pickers) -------------------------- */
+.popover {
+  position: absolute;
+  z-index: 200;
+  min-width: 200px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  padding: 4px;
+  font-family: inherit;
+  font-size: 14px;
+}
+.popover-title {
+  padding: 6px 10px 4px;
+  color: var(--ink-dim);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+.popover-body {
+  display: flex;
+  flex-direction: column;
+}
+.popover-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 6px;
+  text-align: left;
+}
+.popover-item:hover {
+  background: var(--panel-2);
+}
+.popover-item.on {
+  color: var(--ink-strong);
+  font-weight: 600;
+}
+.popover-check {
+  display: inline-flex;
+  width: 18px;
+  justify-content: center;
+  color: var(--green);
+  font-weight: 700;
+}
+.popover-remove {
+  color: var(--warn);
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+  padding-top: 10px;
+  border-radius: 0;
+  justify-content: flex-start;
+}
+.popover-remove:hover {
+  background: rgba(255, 85, 85, 0.08);
+  color: var(--warn);
+}
+
 /* ---------- Footer ------------------------------------------------------- */
 footer {
   padding: 30px 0 0;
