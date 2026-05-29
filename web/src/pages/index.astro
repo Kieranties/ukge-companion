@@ -405,6 +405,33 @@ const eventCategoryCounts: { cat: string; n: number }[] = (() => {
   </div>
 </div>
 
+<!-- Event card overlay — pops the event's existing card into a modal so the
+     Going toggle + notes stay reachable when an event is clicked from a
+     vendor card. Body is filled by event-modal.ts. -->
+<div class="modal vendor-modal" id="event-modal" aria-hidden="true">
+  <div class="modal-box vendor-modal-box" role="dialog" aria-modal="true" aria-label="Event details">
+    <button class="vendor-modal-close" type="button" data-action="close-event-modal" aria-label="Close">×</button>
+    <div class="vendor-modal-body" id="event-modal-body"></div>
+  </div>
+</div>
+
+<!-- Vendor event picker — opened from "+ Add event" on a vendor card. Body
+     is rendered dynamically by event-picker.ts. -->
+<div class="modal" id="vendor-event-picker" aria-hidden="true">
+  <div class="modal-box vendor-event-picker-box" role="dialog" aria-modal="true" aria-label="Add event to vendor">
+    <header class="event-picker-head">
+      <h3 id="event-picker-title">Add event…</h3>
+      <button type="button" data-action="close-vendor-event-picker" aria-label="Close" class="vendor-modal-close">×</button>
+    </header>
+    <input type="search" id="event-picker-search" placeholder="Search events at this hall…" autocomplete="off" inputmode="search" />
+    <div class="event-picker-list" id="event-picker-list"></div>
+    <p class="event-picker-empty hidden" id="event-picker-empty">No matching events. Clear the search to see every event at the show.</p>
+    <label class="event-picker-scope">
+      <input type="checkbox" id="event-picker-all-halls" /> Show events from every hall
+    </label>
+  </div>
+</div>
+
 <!-- Filters panel — opened from the "+ Add filter…" pill. Sheet on mobile,
      popover on desktop. Body is rendered dynamically by filters-panel.ts. -->
 <div class="filters-panel" id="filters-panel" aria-hidden="true">

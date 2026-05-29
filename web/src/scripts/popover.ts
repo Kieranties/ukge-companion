@@ -111,6 +111,11 @@ export function openPopover(args: OpenPopoverArgs) {
 }
 
 // Outside-click + Esc + scroll-away dismissal.
+//
+// We swallow the dismissing click (capture phase + stopPropagation +
+// preventDefault) so it only closes the popover — it does NOT also trigger
+// whatever element the user clicked on (e.g. another Going button or a
+// vendor card link). Matches native OS popover/menu semantics.
 document.addEventListener(
   'click',
   (e) => {
@@ -118,6 +123,23 @@ document.addEventListener(
     const t = e.target as Node;
     if (openEl.contains(t) || openTrigger.contains(t)) return;
     closePopover();
+    e.stopPropagation();
+    e.preventDefault();
+  },
+  true,
+);
+// Mirror for pointerdown so handlers that fire on pointerdown (rare here, but
+// possible inside future widgets) also get suppressed.
+document.addEventListener(
+  'pointerdown',
+  (e) => {
+    if (!openEl || !openTrigger) return;
+    const t = e.target as Node;
+    if (openEl.contains(t) || openTrigger.contains(t)) return;
+    // Don't close here — let the click handler above do it so we keep one
+    // dismissal path. Just stop the pointerdown from reaching scroll/drag
+    // initiators on the underlying element.
+    e.stopPropagation();
   },
   true,
 );

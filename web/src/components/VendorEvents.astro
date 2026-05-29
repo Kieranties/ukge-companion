@@ -1,0 +1,83 @@
+---
+// Lists events linked to this vendor — either auto-linked by the data
+// pipeline (event.exhibitor_slug === vendor.slug) or manually added by
+// the user via the "+ Add event" picker (hydrated client-side from
+// localStorage in the vendor-events.ts script).
+//
+// Row click opens the event modal; the inline "Going" button delegates
+// to the existing events.ts handler (open-going-picker), so day-pick
+// behaviour stays identical to the Events tab.
+import data from '../data/dashboard.json';
+
+interface Props {
+  slug: string;
+  hall?: string;
+  exhibitorName?: string;
+}
+const { slug, hall = '', exhibitorName = '' } = Astro.props;
+
+interface EventLite {
+  id: string;
+  title: string;
+  category: string | null;
+  days: string[];
+  time?: string | null;
+  exhibitor_slug?: string | null;
+}
+
+const linked: EventLite[] = ((data.events as any[]) || []).filter(
+  (e: any) => e.exhibitor_slug === slug,
+);
+
+// Stable order: by first day Fri→Sat→Sun, then by start time.
+const DAY_ORDER: Record<string, number> = { Friday: 0, Saturday: 1, Sunday: 2 };
+linked.sort((a, b) => {
+  const ad = (a.days || []).map((d) => DAY_ORDER[d] ?? 9).sort()[0] ?? 9;
+  const bd = (b.days || []).map((d) => DAY_ORDER[d] ?? 9).sort()[0] ?? 9;
+  if (ad !== bd) return ad - bd;
+  return (a.time || '').localeCompare(b.time || '');
+});
+
+const linkedIds = linked.map((e) => e.id).join(' ');
+---
+<details
+  class={`vendor-events${linked.length === 0 ? ' is-empty' : ''}`}
+  data-role="vendor-events"
+  data-vendor-slug={slug}
+  data-vendor-hall={hall}
+  data-base-event-ids={linkedIds}
+>
+  <summary>
+    {linked.length === 0 ? (
+      <span class="vendor-events-label">Add event…</span>
+    ) : (
+      <>
+        <span class="vendor-events-count" data-role="vendor-events-count">{linked.length}</span>
+        <span class="vendor-events-label">event{linked.length === 1 ? '' : 's'} at this booth</span>
+      </>
+    )}
+  </summary>
+  <ul class="vendor-events-list" data-role="vendor-events-list">
+    {linked.map((e) => (
+      <li
+        class="vendor-event-row"
+        data-event-id={e.id}
+        data-source="linked"
+        data-days={(e.days || []).map((d) => d.slice(0,3).toLowerCase()).join(' ')}
+      >
+        <button class="vendor-event-open" type="button" data-action="open-event-card" data-event-id={e.id} title={`Open ${e.title}`}>
+          <span class="vendor-event-meta">
+            {(e.days || []).map((d) => <span class={`event-day event-day-${d.slice(0,3).toLowerCase()}`}>{d.slice(0,3)}</span>)}
+            {e.time && <span class="vendor-event-time">{e.time}</span>}
+            {e.category && <span class="vendor-event-cat">{e.category}</span>}
+          </span>
+          <span class="vendor-event-title">{e.title}</span>
+        </button>
+        <span class="vendor-event-actions">
+          <button class="booth-btn attend-btn vendor-event-going" type="button" data-action="open-going-picker">Going</button>
+        </span>
+      </li>
+    ))}
+  </ul>
+  <button class="booth-btn vendor-events-add" type="button" data-action="open-vendor-event-picker" data-vendor-slug={slug} data-vendor-hall={hall} data-vendor-name={exhibitorName}>+ Add event</button>
+</details>

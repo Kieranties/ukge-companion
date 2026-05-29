@@ -33,6 +33,7 @@ export interface BoothEntry {
 
 const KEY = 'ukge-companion-state-v1';
 const EVENT_KEY = 'ukge-companion-events-v1';
+const VENDOR_OVERRIDES_KEY = 'ukge-companion-vendor-overrides-v1';
 
 export interface EventEntry {
   /** Day codes ("fri" | "sat" | "sun") the user is attending. Empty/missing = not going. */
@@ -43,14 +44,23 @@ export interface EventEntry {
   notes?: string;
 }
 
+/** Per-vendor user overrides — currently just manually-added event IDs that
+ *  weren't auto-linked by the data pipeline (event had no stand_name match,
+ *  or sat in a neighbouring booth the user knows about). */
+export interface VendorOverride {
+  extraEventIds?: string[];
+}
+
 class StateStore {
   data: Record<string, BoothEntry>;
   events: Record<string, EventEntry>;
+  vendorOverrides: Record<string, VendorOverride>;
   listeners = new Set<() => void>();
 
   constructor() {
     let initial: Record<string, BoothEntry> = {};
     let initialEvents: Record<string, EventEntry> = {};
+    let initialOverrides: Record<string, VendorOverride> = {};
     try {
       initial = JSON.parse(localStorage.getItem(KEY) || '{}');
     } catch {
@@ -61,8 +71,14 @@ class StateStore {
     } catch {
       /* corrupt JSON */
     }
+    try {
+      initialOverrides = JSON.parse(localStorage.getItem(VENDOR_OVERRIDES_KEY) || '{}');
+    } catch {
+      /* corrupt JSON */
+    }
     this.data = initial;
     this.events = initialEvents;
+    this.vendorOverrides = initialOverrides;
   }
 
   get(slug: string): BoothEntry {
@@ -256,6 +272,36 @@ class StateStore {
     this.updateEvent(id, { notes: notes.trim() ? notes : undefined });
   }
 
+  // ---- vendor overrides ---------------------------------------------------
+
+  getVendorOverride(slug: string): VendorOverride {
+    return this.vendorOverrides[slug] || {};
+  }
+
+  /** Returns the user-added extra event IDs for this vendor, in insertion order. */
+  getExtraEventIds(slug: string): string[] {
+    return this.getVendorOverride(slug).extraEventIds || [];
+  }
+
+  addVendorEventOverride(slug: string, eventId: string): void {
+    const cur = this.getExtraEventIds(slug);
+    if (cur.includes(eventId)) return;
+    this.vendorOverrides[slug] = { ...this.getVendorOverride(slug), extraEventIds: [...cur, eventId] };
+    this.persist();
+  }
+
+  removeVendorEventOverride(slug: string, eventId: string): void {
+    const cur = this.getExtraEventIds(slug);
+    if (!cur.includes(eventId)) return;
+    const next = cur.filter((id) => id !== eventId);
+    if (next.length) {
+      this.vendorOverrides[slug] = { ...this.getVendorOverride(slug), extraEventIds: next };
+    } else {
+      delete this.vendorOverrides[slug];
+    }
+    this.persist();
+  }
+
   subscribe(fn: () => void): () => void {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
@@ -265,6 +311,7 @@ class StateStore {
     try {
       localStorage.setItem(KEY, JSON.stringify(this.data));
       localStorage.setItem(EVENT_KEY, JSON.stringify(this.events));
+      localStorage.setItem(VENDOR_OVERRIDES_KEY, JSON.stringify(this.vendorOverrides));
     } catch {
       toast('Storage failed — notes may not persist');
     }

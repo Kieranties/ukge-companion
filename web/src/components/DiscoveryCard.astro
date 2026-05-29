@@ -2,6 +2,7 @@
 import Logo from './Logo.astro';
 import BoothTools from './BoothTools.astro';
 import UkgeGames from './UkgeGames.astro';
+import VendorEvents from './VendorEvents.astro';
 
 interface Props {
   rec: {
@@ -67,5 +68,6 @@ const haystack = [e.name, cats, e.description || '', e.hall || '', e.stand || ''
     {rec.matched_keywords.map((k) => <span class="tag-chip" style="cursor:default" title="Shared category/mechanic keyword">{k}</span>)}
   </div>
   <UkgeGames games={e.ukge_games} exhibitorName={e.name} />
+  <VendorEvents slug={e.slug} hall={e.hall} exhibitorName={e.name} />
   <BoothTools />
 </article>

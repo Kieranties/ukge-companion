@@ -1152,6 +1152,214 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   overflow-wrap: anywhere;
 }
 
+/* ---------- Vendor events block ----------------------------------------- */
+details.vendor-events {
+  margin-top: 8px;
+  border-top: 1px dashed var(--line);
+  padding-top: 8px;
+}
+details.vendor-events.is-empty > summary {
+  opacity: 0.65;
+  font-size: 12px;
+}
+details.vendor-events.is-empty > summary .vendor-events-count {
+  opacity: 0.55;
+}
+details.vendor-events > summary {
+  cursor: pointer;
+  color: var(--accent-2);
+  font-size: 14px;
+  padding: 4px 0;
+}
+.vendor-events-count {
+  font-weight: 600;
+  margin-right: 4px;
+}
+ul.vendor-events-list {
+  list-style: none;
+  padding: 8px 0 0;
+  margin: 0;
+}
+.vendor-event-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+}
+.vendor-event-row[data-source="override"] {
+  border-style: dashed;
+}
+.vendor-event-open {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.vendor-event-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+.vendor-event-time,
+.vendor-event-cat {
+  white-space: nowrap;
+}
+.vendor-event-manual {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: rgba(241, 250, 140, 0.18);
+  color: var(--warn, var(--accent-2));
+}
+.vendor-event-title {
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.vendor-event-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.vendor-event-going {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+.vendor-event-remove {
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink-dim);
+  font-size: 16px;
+  line-height: 1;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.vendor-event-remove:hover {
+  background: var(--panel-3);
+  color: var(--ink);
+  border-color: var(--line);
+}
+.vendor-events-add {
+  margin-top: 4px;
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+/* ---------- Vendor event picker modal ----------------------------------- */
+.vendor-event-picker-box {
+  width: min(560px, 96vw);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.event-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.event-picker-head h3 {
+  margin: 0;
+}
+#event-picker-search {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--ink);
+  font: inherit;
+}
+.event-picker-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+}
+.event-picker-row {
+  appearance: none;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.event-picker-row:hover:not([disabled]) {
+  background: var(--panel-3);
+}
+.event-picker-row.added,
+.event-picker-row[disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.event-picker-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+.event-picker-title {
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.3;
+}
+.event-picker-vendor {
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+.event-picker-added {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-dim);
+}
+.event-picker-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+.event-picker-truncated {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--ink-dim);
+  text-align: center;
+}
+
 /* ---------- Awards ------------------------------------------------------- */
 .award {
   display: inline-block;

@@ -245,9 +245,26 @@ function renderStop(s: Stop, dayFilter: string): string {
   </div>`;
 }
 
+// Skip wholesale innerHTML rebuilds while the user is typing in a route-panel
+// notes textarea — otherwise the textarea node is replaced on every persist
+// and Android dismisses the soft keyboard (iOS tolerates the reparenting).
+// A pending rebuild fires on blur instead.
+let rebuildPending = false;
+function isTypingInRouteNotes(root: HTMLElement): boolean {
+  const a = document.activeElement as HTMLElement | null;
+  if (!a || !root.contains(a)) return false;
+  const role = a.getAttribute('data-role');
+  return role === 'notes-text' || role === 'event-notes-text';
+}
+
 export function buildRoute() {
   const root = document.getElementById('route-plan');
   if (!root) return;
+  if (isTypingInRouteNotes(root)) {
+    rebuildPending = true;
+    return;
+  }
+  rebuildPending = false;
   const dayFilter = readDayFilter();
   const stops = collectStops().filter((s) => {
     if (s.skipped) {
@@ -342,6 +359,18 @@ function wireRouteInteractions() {
       setTimeout(() => store.setNotes(slug, ta.value), 250)
     );
   });
+
+  // Run any rebuild we deferred while the user was typing in a notes field.
+  root.addEventListener(
+    'blur',
+    (e) => {
+      const t = e.target as HTMLElement | null;
+      const role = t?.getAttribute('data-role');
+      if (role !== 'notes-text' && role !== 'event-notes-text') return;
+      if (rebuildPending) buildRoute();
+    },
+    true,
+  );
 }
 
 export function wireRoute() {
