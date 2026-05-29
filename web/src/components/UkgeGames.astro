@@ -5,6 +5,7 @@ interface Game {
   name: string;
   image?: string | null;
   description?: string | null;
+  bggId?: string | number | null;
 }
 interface Props {
   games?: Game[];
@@ -21,7 +22,7 @@ if (!games || games.length === 0) return null as any;
         {g.image && <img class="ukge-game-thumb" src={g.image} alt="" loading="lazy" referrerpolicy="no-referrer" />}
         <div class="ukge-game-body">
           <span class="ukge-game-name">{g.name}</span>
-          <BggLink name={g.name} />
+          <BggLink bggId={g.bggId} name={g.name} />
           {g.description && <p class="ukge-game-desc">{g.description}</p>}
         </div>
       </li>

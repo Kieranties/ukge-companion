@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -30,6 +30,27 @@ jobs:
         env:
           BGG_API_TOKEN: ${{ secrets.BGG_API_TOKEN }}
         run: python fetch_collection.py
+
+      - name: Resolve BGG ids for UKGE-listed games
+        working-directory: data-pipeline
+        env:
+          BGG_API_TOKEN: ${{ secrets.BGG_API_TOKEN }}
+        run: python enrich_exhibitor_games.py
+
+      - name: Commit refreshed cache
+        # Commit the enriched exhibitor_games.json (and any refreshed
+        # collection JSON) back to main so the next build is a cache hit.
+        # `[skip ci]` keeps this commit from re-triggering the workflow.
+        run: |
+          if [[ -n "$(git status --porcelain web/src/data/exhibitor_games.json data-pipeline/kieranties_collection.json)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add web/src/data/exhibitor_games.json data-pipeline/kieranties_collection.json
+            git commit -m "chore(data): refresh BGG cache [skip ci]"
+            git push
+          else
+            echo "no cache changes to commit"
+          fi
 
       - name: Build dashboard.json
         working-directory: data-pipeline
