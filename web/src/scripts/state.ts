@@ -34,6 +34,26 @@ export interface BoothEntry {
 const KEY = 'ukge-companion-state-v1';
 const EVENT_KEY = 'ukge-companion-events-v1';
 const VENDOR_OVERRIDES_KEY = 'ukge-companion-vendor-overrides-v1';
+const LIBRARY_KEY = 'ukge-companion-library-v1';
+
+export interface LibraryEntry {
+  /** Stable id so re-renders don't shift index-based ops underneath the user. */
+  id: string;
+  name: string;
+  played?: boolean;
+  notes?: string;
+  addedAt?: string;
+  playedAt?: string;
+}
+
+function newLibraryId(): string {
+  // crypto.randomUUID exists on every modern browser in a secure context (we
+  // ship over https) — fall back to a timestamp + random suffix on the off
+  // chance an old webview hits this code.
+  const c = (globalThis as any).crypto;
+  if (c && typeof c.randomUUID === 'function') return c.randomUUID();
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
 export interface EventEntry {
   /** Day codes ("fri" | "sat" | "sun") the user is attending. Empty/missing = not going. */
@@ -55,12 +75,14 @@ class StateStore {
   data: Record<string, BoothEntry>;
   events: Record<string, EventEntry>;
   vendorOverrides: Record<string, VendorOverride>;
+  library: LibraryEntry[];
   listeners = new Set<() => void>();
 
   constructor() {
     let initial: Record<string, BoothEntry> = {};
     let initialEvents: Record<string, EventEntry> = {};
     let initialOverrides: Record<string, VendorOverride> = {};
+    let initialLibrary: LibraryEntry[] = [];
     try {
       initial = JSON.parse(localStorage.getItem(KEY) || '{}');
     } catch {
@@ -76,9 +98,16 @@ class StateStore {
     } catch {
       /* corrupt JSON */
     }
+    try {
+      const raw = JSON.parse(localStorage.getItem(LIBRARY_KEY) || '[]');
+      if (Array.isArray(raw)) initialLibrary = raw.filter((x) => x && typeof x.id === 'string' && typeof x.name === 'string');
+    } catch {
+      /* corrupt JSON */
+    }
     this.data = initial;
     this.events = initialEvents;
     this.vendorOverrides = initialOverrides;
+    this.library = initialLibrary;
   }
 
   get(slug: string): BoothEntry {
@@ -302,6 +331,48 @@ class StateStore {
     this.persist();
   }
 
+  // ---- library -----------------------------------------------------------
+
+  addLibraryGame(name: string): string | null {
+    const clean = name.trim();
+    if (!clean) return null;
+    // Dedupe by case-insensitive name so re-adding "Wingspan" doesn't pile up.
+    const existing = this.library.find((g) => g.name.toLowerCase() === clean.toLowerCase());
+    if (existing) return existing.id;
+    const id = newLibraryId();
+    this.library = [...this.library, { id, name: clean, addedAt: new Date().toISOString() }];
+    this.persist();
+    return id;
+  }
+
+  togglePlayedLibrary(id: string): void {
+    const idx = this.library.findIndex((g) => g.id === id);
+    if (idx < 0) return;
+    const cur = this.library[idx];
+    const nextPlayed = !cur.played;
+    this.library = this.library.map((g, i) => (i === idx
+      ? { ...g, played: nextPlayed || undefined, playedAt: nextPlayed ? new Date().toISOString() : undefined }
+      : g));
+    this.persist();
+  }
+
+  setLibraryNotes(id: string, notes: string): void {
+    const idx = this.library.findIndex((g) => g.id === id);
+    if (idx < 0) return;
+    const trimmed = notes.trim();
+    this.library = this.library.map((g, i) => (i === idx
+      ? { ...g, notes: trimmed ? notes : undefined }
+      : g));
+    this.persist();
+  }
+
+  removeLibraryGame(id: string): void {
+    const next = this.library.filter((g) => g.id !== id);
+    if (next.length === this.library.length) return;
+    this.library = next;
+    this.persist();
+  }
+
   subscribe(fn: () => void): () => void {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
@@ -312,6 +383,7 @@ class StateStore {
       localStorage.setItem(KEY, JSON.stringify(this.data));
       localStorage.setItem(EVENT_KEY, JSON.stringify(this.events));
       localStorage.setItem(VENDOR_OVERRIDES_KEY, JSON.stringify(this.vendorOverrides));
+      localStorage.setItem(LIBRARY_KEY, JSON.stringify(this.library));
     } catch {
       toast('Storage failed — notes may not persist');
     }

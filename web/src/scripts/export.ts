@@ -148,6 +148,20 @@ function buildMarkdown(): string {
     }
     lines.push('');
   }
+  const libToPlay = store.library.filter((g) => !g.played);
+  const libPlayed = store.library.filter((g) => g.played);
+  if (libToPlay.length || libPlayed.length) {
+    lines.push('## 🎲 Library');
+    for (const g of libToPlay) {
+      lines.push(`- [ ] ${g.name}`);
+      if (g.notes && g.notes.trim()) for (const ln of g.notes.split(/\r?\n/)) lines.push(`  - ${ln}`);
+    }
+    for (const g of libPlayed) {
+      lines.push(`- [x] ${g.name}`);
+      if (g.notes && g.notes.trim()) for (const ln of g.notes.split(/\r?\n/)) lines.push(`  - ${ln}`);
+    }
+    lines.push('');
+  }
   const hidden = Object.entries(store.data).filter(([, v]) => v.skipped);
   if (hidden.length) {
     lines.push('## Hidden');
@@ -182,7 +196,8 @@ function buildMarkdown(): string {
     buying.length === 0 &&
     hidden.length === 0 &&
     notesOnly.length === 0 &&
-    !anyEventTracked
+    !anyEventTracked &&
+    store.library.length === 0
   ) {
     lines.push('*Nothing tracked yet.*');
   }

@@ -1152,6 +1152,99 @@ ul.ukge-games-list li:has(.ukge-game-thumb:only-child) {
   overflow-wrap: anywhere;
 }
 
+/* ---------- Library tab ------------------------------------------------- */
+.lib-add {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.lib-add input[type="text"] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--ink);
+  font: inherit;
+}
+.lib-section {
+  margin-top: 12px;
+}
+.lib-section-head {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+details.lib-section-played > summary {
+  cursor: pointer;
+  list-style: none;
+  margin: 12px 0 6px;
+}
+details.lib-section-played > summary::-webkit-details-marker {
+  display: none;
+}
+.lib-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.lib-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  margin-bottom: 4px;
+}
+.lib-row.played {
+  opacity: 0.6;
+}
+.lib-row.played .lib-name {
+  text-decoration: line-through;
+  text-decoration-color: var(--ink-dim);
+}
+.lib-row.played .shopping-check {
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green);
+}
+.lib-name {
+  color: var(--ink);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.lib-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.lib-actions .notes-toggle {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+.lib-row .notes-area {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+}
+.lib-row .notes-area textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 6px 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  font: inherit;
+  resize: vertical;
+}
+
 /* ---------- Vendor events block ----------------------------------------- */
 details.vendor-events {
   margin-top: 8px;

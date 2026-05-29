@@ -126,6 +126,7 @@ const eventCategoryCounts: { cat: string; n: number }[] = (() => {
       <button class="tab" data-tab="events">Events <span class="badge">{data.stats.events_count}</span></button>
       <button class="tab" data-tab="route">Route</button>
       <button class="tab" data-tab="shopping">Shopping <span class="badge hidden">0</span></button>
+      <button class="tab" data-tab="library">Library <span class="badge hidden">0</span></button>
       <button class="tab" data-tab="discover">Discover <span class="badge">{data.stats.discovery_count}</span></button>
       <button class="tab" data-tab="browse">Browse all <span class="badge">{data.stats.total_exhibitors}</span></button>
       <button class="tab" data-tab="info">Info</button>
@@ -198,6 +199,16 @@ const eventCategoryCounts: { cat: string; n: number }[] = (() => {
         <p class="lede">Stands you've flagged for buying. Add specific games per stand to keep track on the floor; tick them off as you go.</p>
       </div>
       <div id="shopping-list"></div>
+    </section>
+  </div>
+
+  <div class="panel" data-panel="library">
+    <section>
+      <div class="section-head">
+        <h2>Game library</h2>
+        <p class="lede">Track games you'd like to borrow from the UKGE <a href="https://www.ukgamesexpo.co.uk/whats-on/show/board-game-library/" target="_blank" rel="noopener">Board Game Library</a> (1500+ titles, sponsored by Chance &amp; Counters). £10 deposit and photo ID at the desk. Add games here, then tick them off once you've played.</p>
+      </div>
+      <div id="library-list"></div>
     </section>
   </div>
 
