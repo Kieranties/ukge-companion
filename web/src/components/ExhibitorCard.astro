@@ -4,6 +4,7 @@ import AwardBadge from './AwardBadge.astro';
 import BoothTools from './BoothTools.astro';
 import UkgeGames from './UkgeGames.astro';
 import VendorEvents from './VendorEvents.astro';
+import BggLink from './BggLink.astro';
 
 interface Game {
   bggId: string;
@@ -149,6 +150,7 @@ const whyText = whyParts.join(' · ');
       {rec.games.map((g) => (
         <li>
           <button class="g-name tag-chip" data-tag-kind="game" data-tag-value={g.game.name} type="button">{g.game.name}</button>
+          <BggLink bggId={g.game.bggId} name={g.game.name} />
           <span class="g-year"> ({g.game.year})</span>
           <AwardBadge award={g.game.award} />
           <span class="g-plays">{g.plays}× plays</span>

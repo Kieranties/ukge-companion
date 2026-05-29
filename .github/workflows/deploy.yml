@@ -25,6 +25,12 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Refresh BGG collection
+        working-directory: data-pipeline
+        env:
+          BGG_API_TOKEN: ${{ secrets.BGG_API_TOKEN }}
+        run: python fetch_collection.py
+
       - name: Build dashboard.json
         working-directory: data-pipeline
         run: python build_data.py

@@ -1,0 +1,24 @@
+---
+// Small BGG icon link — visually marks that a chip / row links out to
+// BoardGameGeek. Use everywhere a game name is shown so the user can
+// jump to its BGG page in one tap.
+//
+// `bggId` produces a direct game link; if absent, falls back to a BGG
+// search URL with the game name. (UKGE listings give us names but not
+// BGG ids; the user's collection gives us bggId so we link direct.)
+interface Props {
+  bggId?: string | number | null;
+  name?: string;
+  label?: string;  // accessible label
+  size?: 'sm' | 'md';
+}
+const { bggId, name = '', label = '', size = 'sm' } = Astro.props;
+const href = bggId
+  ? `https://boardgamegeek.com/boardgame/${bggId}`
+  : `https://boardgamegeek.com/geeksearch.php?action=search&objecttype=boardgame&q=${encodeURIComponent(name)}`;
+const title = label || (bggId ? `Open on BoardGameGeek` : `Search ${name} on BoardGameGeek`);
+---
+<a class={`bgg-link bgg-link-${size}`} href={href} target="_blank" rel="noopener" title={title} aria-label={title}>
+  <span class="bgg-link-mark" aria-hidden="true">BGG</span>
+  <span class="bgg-link-arrow" aria-hidden="true">↗</span>
+</a>
