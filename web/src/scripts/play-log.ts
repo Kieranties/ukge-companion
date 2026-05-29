@@ -26,18 +26,14 @@ function renderRow(s: PlaySession): string {
     : '';
   return `<li class="play-row" data-play-id="${esc(s.id)}">
     <div class="play-head">
-      <span class="play-name">${esc(s.gameName)}</span>
+      <input class="play-name" type="text" data-role="play-name" value="${esc(s.gameName)}" aria-label="Game name" />
       ${dayChip(s.playedAt)}
       ${fromLib}
       <button class="shopping-remove" data-action="remove-play" type="button" aria-label="Remove ${esc(s.gameName)}">×</button>
     </div>
     <label class="play-field">
-      <span class="play-field-label">Played with</span>
-      <input type="text" data-role="play-with" placeholder="Group, partner, randoms…" value="${esc(s.withWho || '')}" />
-    </label>
-    <label class="play-field">
       <span class="play-field-label">Notes</span>
-      <textarea data-role="play-notes" placeholder="Quick impressions, scores, who liked it, would we buy it…">${esc(s.notes || '')}</textarea>
+      <textarea data-role="play-notes" placeholder="Quick impressions, scores, would we buy it…">${esc(s.notes || '')}</textarea>
     </label>
   </li>`;
 }
@@ -47,7 +43,7 @@ function isTypingInPlayLog(root: HTMLElement): boolean {
   const a = document.activeElement as HTMLElement | null;
   if (!a || !root.contains(a)) return false;
   const role = a.getAttribute('data-role');
-  return role === 'play-with' || role === 'play-notes' || role === 'play-add-input';
+  return role === 'play-name' || role === 'play-notes' || role === 'play-add-input';
 }
 
 export function buildPlayLog() {
@@ -110,14 +106,24 @@ export function wirePlayLog() {
   });
 
   // Save the editable fields on blur so the re-render doesn't drop focus.
+  // play-name renames the session in-place; empty input is treated as a
+  // remove so the user can clear a stray entry without hunting for the × .
   panel.addEventListener('change', (e) => {
     const t = e.target as HTMLInputElement | HTMLTextAreaElement;
     const role = t?.dataset?.role;
-    if (role !== 'play-with' && role !== 'play-notes') return;
+    if (role !== 'play-name' && role !== 'play-notes') return;
     const id = t.closest<HTMLElement>('[data-play-id]')?.dataset.playId;
     if (!id) return;
-    if (role === 'play-with') store.updatePlaySession(id, { withWho: t.value });
-    else store.updatePlaySession(id, { notes: t.value });
+    if (role === 'play-name') {
+      const next = t.value.trim();
+      if (!next) {
+        store.removePlaySession(id);
+        return;
+      }
+      store.updatePlaySession(id, { gameName: next });
+    } else {
+      store.updatePlaySession(id, { notes: t.value });
+    }
   });
 
   // Mirror of the route/library defer fix.
@@ -126,7 +132,7 @@ export function wirePlayLog() {
     (e) => {
       const t = e.target as HTMLElement | null;
       const role = t?.getAttribute('data-role');
-      if (role !== 'play-with' && role !== 'play-notes' && role !== 'play-add-input') return;
+      if (role !== 'play-name' && role !== 'play-notes' && role !== 'play-add-input') return;
       if (rebuildPending) buildPlayLog();
     },
     true,

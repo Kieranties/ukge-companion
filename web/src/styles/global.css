@@ -1267,13 +1267,21 @@ details.lib-section-played > summary::-webkit-details-marker {
   gap: 8px;
   flex-wrap: wrap;
 }
-.play-name {
+input.play-name {
   font-weight: 600;
   font-size: 14px;
   color: var(--ink);
   flex: 1 1 auto;
   min-width: 0;
-  overflow-wrap: anywhere;
+  padding: 4px 6px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-family: inherit;
+}
+input.play-name:focus {
+  border-color: var(--accent-2);
+  outline: none;
 }
 .play-day {
   font-size: 11px;
