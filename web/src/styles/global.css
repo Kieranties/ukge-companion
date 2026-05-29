@@ -1245,6 +1245,79 @@ details.lib-section-played > summary::-webkit-details-marker {
   resize: vertical;
 }
 
+/* ---------- Played (play log) tab --------------------------------------- */
+.play-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.play-row {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.play-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.play-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.play-day {
+  font-size: 11px;
+  color: var(--ink-dim);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+.play-from-lib {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(241, 250, 140, 0.18);
+  color: var(--warn, var(--accent-2));
+}
+.play-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.play-field-label {
+  font-size: 11px;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.play-field input,
+.play-field textarea {
+  width: 100%;
+  padding: 6px 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  font: inherit;
+  resize: vertical;
+}
+.play-field textarea {
+  min-height: 60px;
+}
+
 /* ---------- Vendor events block ----------------------------------------- */
 details.vendor-events {
   margin-top: 8px;

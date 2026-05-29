@@ -35,6 +35,7 @@ const KEY = 'ukge-companion-state-v1';
 const EVENT_KEY = 'ukge-companion-events-v1';
 const VENDOR_OVERRIDES_KEY = 'ukge-companion-vendor-overrides-v1';
 const LIBRARY_KEY = 'ukge-companion-library-v1';
+const PLAY_LOG_KEY = 'ukge-companion-play-log-v1';
 
 export interface LibraryEntry {
   /** Stable id so re-renders don't shift index-based ops underneath the user. */
@@ -71,11 +72,29 @@ export interface VendorOverride {
   extraEventIds?: string[];
 }
 
+/** A single recorded play at the show. Free-form: works for library games
+ *  (with `libraryId` linking back to the LibraryEntry), games brought from
+ *  home, and opportunistic plays in open gaming. */
+export interface PlaySession {
+  id: string;
+  gameName: string;
+  /** ISO timestamp of when the entry was logged. Used for sort and the
+   *  day chip ("Fri" etc.) on the row. */
+  playedAt?: string;
+  /** Free-text who-was-there field. */
+  withWho?: string;
+  notes?: string;
+  /** Set when this session was auto-created by marking a Library entry as
+   *  played, so the two stay linked (and toggling played-off can clean up). */
+  libraryId?: string;
+}
+
 class StateStore {
   data: Record<string, BoothEntry>;
   events: Record<string, EventEntry>;
   vendorOverrides: Record<string, VendorOverride>;
   library: LibraryEntry[];
+  playLog: PlaySession[];
   listeners = new Set<() => void>();
 
   constructor() {
@@ -83,6 +102,7 @@ class StateStore {
     let initialEvents: Record<string, EventEntry> = {};
     let initialOverrides: Record<string, VendorOverride> = {};
     let initialLibrary: LibraryEntry[] = [];
+    let initialPlayLog: PlaySession[] = [];
     try {
       initial = JSON.parse(localStorage.getItem(KEY) || '{}');
     } catch {
@@ -104,10 +124,17 @@ class StateStore {
     } catch {
       /* corrupt JSON */
     }
+    try {
+      const raw = JSON.parse(localStorage.getItem(PLAY_LOG_KEY) || '[]');
+      if (Array.isArray(raw)) initialPlayLog = raw.filter((x) => x && typeof x.id === 'string' && typeof x.gameName === 'string');
+    } catch {
+      /* corrupt JSON */
+    }
     this.data = initial;
     this.events = initialEvents;
     this.vendorOverrides = initialOverrides;
     this.library = initialLibrary;
+    this.playLog = initialPlayLog;
   }
 
   get(slug: string): BoothEntry {
@@ -350,9 +377,27 @@ class StateStore {
     if (idx < 0) return;
     const cur = this.library[idx];
     const nextPlayed = !cur.played;
+    const now = new Date().toISOString();
     this.library = this.library.map((g, i) => (i === idx
-      ? { ...g, played: nextPlayed || undefined, playedAt: nextPlayed ? new Date().toISOString() : undefined }
+      ? { ...g, played: nextPlayed || undefined, playedAt: nextPlayed ? now : undefined }
       : g));
+    // When marking played, mirror an entry into the play log so the user can
+    // attach who-played-with + post-play notes. When unmarking, remove only
+    // the auto-created session — leave any manually-edited one as a record.
+    if (nextPlayed) {
+      const existing = this.playLog.find((s) => s.libraryId === id);
+      if (!existing) {
+        this.playLog = [
+          ...this.playLog,
+          { id: newLibraryId(), gameName: cur.name, playedAt: now, libraryId: id },
+        ];
+      }
+    } else {
+      const auto = this.playLog.find(
+        (s) => s.libraryId === id && !s.withWho && !s.notes
+      );
+      if (auto) this.playLog = this.playLog.filter((s) => s.id !== auto.id);
+    }
     this.persist();
   }
 
@@ -373,6 +418,48 @@ class StateStore {
     this.persist();
   }
 
+  // ---- play log ----------------------------------------------------------
+
+  addPlaySession(gameName: string): string | null {
+    const clean = gameName.trim();
+    if (!clean) return null;
+    const id = newLibraryId();
+    this.playLog = [
+      ...this.playLog,
+      { id, gameName: clean, playedAt: new Date().toISOString() },
+    ];
+    this.persist();
+    return id;
+  }
+
+  updatePlaySession(id: string, patch: Partial<PlaySession>): void {
+    const idx = this.playLog.findIndex((s) => s.id === id);
+    if (idx < 0) return;
+    const cur = this.playLog[idx];
+    const merged: PlaySession = { ...cur, ...patch };
+    // Drop empty optional fields so the JSON stays compact.
+    if (!merged.withWho || !merged.withWho.trim()) delete merged.withWho;
+    if (!merged.notes || !merged.notes.trim()) delete merged.notes;
+    this.playLog = this.playLog.map((s, i) => (i === idx ? merged : s));
+    this.persist();
+  }
+
+  removePlaySession(id: string): void {
+    const next = this.playLog.filter((s) => s.id !== id);
+    if (next.length === this.playLog.length) return;
+    // If this session was linked to a library entry, clear the library's
+    // played flag so the two views agree.
+    const removed = this.playLog.find((s) => s.id === id);
+    if (removed?.libraryId) {
+      const lid = removed.libraryId;
+      this.library = this.library.map((g) => (g.id === lid
+        ? { ...g, played: undefined, playedAt: undefined }
+        : g));
+    }
+    this.playLog = next;
+    this.persist();
+  }
+
   subscribe(fn: () => void): () => void {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
@@ -384,6 +471,7 @@ class StateStore {
       localStorage.setItem(EVENT_KEY, JSON.stringify(this.events));
       localStorage.setItem(VENDOR_OVERRIDES_KEY, JSON.stringify(this.vendorOverrides));
       localStorage.setItem(LIBRARY_KEY, JSON.stringify(this.library));
+      localStorage.setItem(PLAY_LOG_KEY, JSON.stringify(this.playLog));
     } catch {
       toast('Storage failed — notes may not persist');
     }

@@ -162,6 +162,17 @@ function buildMarkdown(): string {
     }
     lines.push('');
   }
+  if (store.playLog.length) {
+    lines.push('## 🃏 Played');
+    const sorted = [...store.playLog].sort((a, b) => (a.playedAt || '').localeCompare(b.playedAt || ''));
+    for (const s of sorted) {
+      const when = s.playedAt ? ` _(${new Date(s.playedAt).toLocaleString()})_` : '';
+      lines.push(`- **${s.gameName}**${when}`);
+      if (s.withWho && s.withWho.trim()) lines.push(`  - with: ${s.withWho.trim()}`);
+      if (s.notes && s.notes.trim()) for (const ln of s.notes.split(/\r?\n/)) lines.push(`  - ${ln}`);
+    }
+    lines.push('');
+  }
   const hidden = Object.entries(store.data).filter(([, v]) => v.skipped);
   if (hidden.length) {
     lines.push('## Hidden');
@@ -197,7 +208,8 @@ function buildMarkdown(): string {
     hidden.length === 0 &&
     notesOnly.length === 0 &&
     !anyEventTracked &&
-    store.library.length === 0
+    store.library.length === 0 &&
+    store.playLog.length === 0
   ) {
     lines.push('*Nothing tracked yet.*');
   }
