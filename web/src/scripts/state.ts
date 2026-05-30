@@ -83,6 +83,8 @@ export interface PlaySession {
   playedAt?: string;
   /** Free-text who-was-there field. */
   withWho?: string;
+  /** 1–5, quick post-play rating. Absent = not rated. */
+  rating?: number;
   notes?: string;
   /** Set when this session was auto-created by marking a Library entry as
    *  played, so the two stay linked (and toggling played-off can clean up). */
@@ -440,6 +442,7 @@ class StateStore {
     // Drop empty optional fields so the JSON stays compact.
     if (!merged.withWho || !merged.withWho.trim()) delete merged.withWho;
     if (!merged.notes || !merged.notes.trim()) delete merged.notes;
+    if (!merged.rating || merged.rating < 1) delete merged.rating;
     this.playLog = this.playLog.map((s, i) => (i === idx ? merged : s));
     this.persist();
   }

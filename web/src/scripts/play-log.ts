@@ -20,6 +20,17 @@ function dayChip(iso: string | undefined): string {
   return `<span class="play-day">${day} ${time}</span>`;
 }
 
+function renderStars(rating: number | undefined): string {
+  const r = rating || 0;
+  let out = '<span class="play-stars" role="radiogroup" aria-label="Rating">';
+  for (let i = 1; i <= 5; i++) {
+    const on = i <= r;
+    out += `<button type="button" class="play-star${on ? ' on' : ''}" data-action="set-rating" data-rating="${i}" role="radio" aria-checked="${on ? 'true' : 'false'}" aria-label="${i} star${i === 1 ? '' : 's'}" title="${i} / 5">${on ? '★' : '☆'}</button>`;
+  }
+  out += '</span>';
+  return out;
+}
+
 function renderRow(s: PlaySession): string {
   const fromLib = s.libraryId
     ? `<span class="play-from-lib" title="Logged from your library list">from library</span>`
@@ -31,6 +42,7 @@ function renderRow(s: PlaySession): string {
       ${fromLib}
       <button class="shopping-remove" data-action="remove-play" type="button" aria-label="Remove ${esc(s.gameName)}">×</button>
     </div>
+    ${renderStars(s.rating)}
     <label class="play-field">
       <span class="play-field-label">Notes</span>
       <textarea data-role="play-notes" placeholder="Quick impressions, scores, would we buy it…">${esc(s.notes || '')}</textarea>
@@ -87,9 +99,17 @@ export function wirePlayLog() {
   panel.addEventListener('click', (e) => {
     const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
     if (!btn) return;
-    if (btn.dataset.action !== 'remove-play') return;
+    const action = btn.dataset.action;
     const id = btn.closest<HTMLElement>('[data-play-id]')?.dataset.playId;
-    if (id) store.removePlaySession(id);
+    if (action === 'remove-play' && id) {
+      store.removePlaySession(id);
+    } else if (action === 'set-rating' && id) {
+      // Re-tapping the current rating clears it back to unrated — same as the
+      // booth visit-status cycle, lets the user undo without a separate button.
+      const next = parseInt(btn.dataset.rating || '0', 10);
+      const cur = store.playLog.find((s) => s.id === id)?.rating || 0;
+      store.updatePlaySession(id, { rating: next === cur ? undefined : next });
+    }
   });
 
   panel.addEventListener('submit', (e) => {

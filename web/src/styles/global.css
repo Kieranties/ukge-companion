@@ -1353,6 +1353,26 @@ input.play-name:focus {
 .play-field textarea {
   min-height: 60px;
 }
+.play-stars {
+  display: inline-flex;
+  gap: 2px;
+}
+.play-star {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 2px 4px;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ink-dim);
+}
+.play-star.on {
+  color: #f1c40f;
+}
+.play-star:hover {
+  color: #f1c40f;
+}
 
 /* ---------- Vendor events block ----------------------------------------- */
 details.vendor-events {

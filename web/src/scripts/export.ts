@@ -167,7 +167,8 @@ function buildMarkdown(): string {
     const sorted = [...store.playLog].sort((a, b) => (a.playedAt || '').localeCompare(b.playedAt || ''));
     for (const s of sorted) {
       const when = s.playedAt ? ` _(${new Date(s.playedAt).toLocaleString()})_` : '';
-      lines.push(`- **${s.gameName}**${when}`);
+      const stars = s.rating ? ` ${'★'.repeat(s.rating)}${'☆'.repeat(5 - s.rating)}` : '';
+      lines.push(`- **${s.gameName}**${stars}${when}`);
       if (s.notes && s.notes.trim()) for (const ln of s.notes.split(/\r?\n/)) lines.push(`  - ${ln}`);
     }
     lines.push('');
